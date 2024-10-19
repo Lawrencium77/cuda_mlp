@@ -21,6 +21,15 @@ class Vector {
       Vector operator-(const float value);
       Vector operator*(const float value);
       Vector operator/(const float value);
+
+      Vector operator+(Vector& other);
+      Vector operator-(Vector& other);
+      Vector operator*(Vector& other);
+      Vector operator/(Vector& other);
+
+      float* getDataPtr(){
+        return data;
+      }
 };
 
 #endif

@@ -47,3 +47,35 @@ Vector Vector::operator/(const float value) {
     cudaDeviceSynchronize();
     return result;
 }
+
+Vector Vector::operator+(Vector& other) {
+    Vector result(size);
+    float* other_data = other.getDataPtr();
+    vector_add<<<1, size>>>(data, other_data, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Vector Vector::operator-(Vector& other) {
+    Vector result(size);
+    float* other_data = other.getDataPtr();
+    vector_sub<<<1, size>>>(data, other_data, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Vector Vector::operator*(Vector& other) {
+    Vector result(size);
+    float* other_data = other.getDataPtr();
+    vector_mul<<<1, size>>>(data, other_data, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Vector Vector::operator/(Vector& other) {
+    Vector result(size);
+    float* other_data = other.getDataPtr();
+    vector_div<<<1, size>>>(data, other_data, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
