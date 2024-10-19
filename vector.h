@@ -1,0 +1,23 @@
+// Defines Vector class
+
+#ifndef VECTOR_H
+#define VECTOR_H
+
+class Vector {
+  private:
+      float *data;
+      int size;
+
+  public:
+      Vector(int size);
+
+      ~Vector();
+
+      void setData(const float* host_data);
+
+      void getData(float* host_data);
+
+      Vector operator+(const float value);
+};
+
+#endif // VECTOR_H
