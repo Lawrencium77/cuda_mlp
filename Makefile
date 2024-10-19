@@ -3,7 +3,6 @@ NVCC = nvcc
 CFLAGS = -I./include
 
 SRC_DIR = src
-INC_DIR = include
 TEST_DIR = tests
 BUILD_DIR = build
 
