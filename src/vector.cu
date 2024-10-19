@@ -79,3 +79,10 @@ Vector Vector::operator/(Vector& other) {
     cudaDeviceSynchronize();
     return result;
 }
+
+Vector Vector::sigmoid(){
+    Vector result(size);
+    vector_sigmoid<<<1, size>>>(data, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}

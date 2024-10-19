@@ -97,6 +97,16 @@ void testDiv(float* data, int size) {
     printData(data, size);
 }
 
+void testSigmoid(float* data, int size) {
+    Vector my_vector(size);
+    my_vector.setData(data);
+
+    Vector new_vector = my_vector.sigmoid();
+
+    new_vector.getData(data);
+    printData(data, size);
+}
+
 void runTests() {
     int size = 5;
     float value = 10.0;
@@ -105,7 +115,10 @@ void runTests() {
         data[i] = 1.0f;
     }
     
-    std::cout << "Testing Const Ops" << std::endl;
+    std::cout << "Testing Sigmoid Op" << std::endl;
+    testSigmoid(data, size);
+
+    std::cout << "\nTesting Const Ops" << std::endl;
     testAddConst(data, value, size);
     testSubConst(data, value, size);
     testMulConst(data, value, size);

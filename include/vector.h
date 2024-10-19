@@ -27,6 +27,8 @@ class Vector {
       Vector operator*(Vector& other);
       Vector operator/(Vector& other);
 
+      Vector sigmoid();
+
       float* getDataPtr(){
         return data;
       }

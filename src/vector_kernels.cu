@@ -55,3 +55,10 @@ __global__ void vector_div(float *a, float *b, float *c, int n){
         c[index] = a[index] / b[index];
     }
 }
+
+__global__ void vector_sigmoid(float *a, float*c, int n){
+    int index = threadIdx.x;
+    if (index < n){
+        c[index] = 1 / (1 + expf(-1 * a[index]));
+    }
+}
