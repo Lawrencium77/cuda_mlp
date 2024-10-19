@@ -18,6 +18,9 @@ class Vector {
       void getData(float* host_data);
 
       Vector operator+(const float value);
+      Vector operator-(const float value);
+      Vector operator*(const float value);
+      Vector operator/(const float value);
 };
 
-#endif // VECTOR_H
+#endif

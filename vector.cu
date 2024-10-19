@@ -26,3 +26,24 @@ Vector Vector::operator+(const float value) {
     cudaDeviceSynchronize();
     return result;
 }
+
+Vector Vector::operator-(const float value) {
+    Vector result(size);
+    vector_sub_const<<<1, size>>>(data, value, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Vector Vector::operator*(const float value) {
+    Vector result(size);
+    vector_mul_const<<<1, size>>>(data, value, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Vector Vector::operator/(const float value) {
+    Vector result(size);
+    vector_div_const<<<1, size>>>(data, value, result.data, size);
+    cudaDeviceSynchronize();
+    return result;
+}
