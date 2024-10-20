@@ -36,6 +36,16 @@ void testMul(float* data, int rows, int cols) {
     printData(data, rows, cols);
 }
 
+void testSoftmax(float* data, int rows, int cols) {
+    Matrix matrix1(rows, cols);
+    matrix1.setData(data);
+
+    Matrix output = matrix1.softmax();
+
+    output.getData(data);
+    printData(data, rows, cols);
+}
+
 void runTests() {
     int rows = 8;
     int cols = 8;
@@ -55,6 +65,9 @@ void runTests() {
 
     std::cout << "Testing Mul Op" << std::endl;
     testMul(data, rows, cols);
+
+    std::cout << "Testing Softmax Op" << std::endl;
+    testSoftmax(data, rows, cols);
 
 }
 

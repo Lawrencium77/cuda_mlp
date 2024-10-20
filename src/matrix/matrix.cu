@@ -56,3 +56,14 @@ Matrix Matrix::matmul(const Matrix& other) {
     cudaDeviceSynchronize();
     return result;
 };
+
+Matrix Matrix::softmax() {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(1, 256);
+    dim3 gridSize(1, (rows + blockSize.y - 1) / blockSize.y);
+
+    matrix_softmax<<<blockSize, gridSize>>>(data, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+};
