@@ -1,5 +1,5 @@
-#ifndef KERNELS_H
-#define KERNELS_H
+#ifndef VECTOR_KERNELS_H
+#define VECTOR_KERNELS_H
 
 #ifdef __CUDACC__
 __global__ void vector_add_const(float *a, float value, float *c, int n);

@@ -6,18 +6,26 @@ SRC_DIR = src
 TEST_DIR = tests
 BUILD_DIR = build
 
-SRC_FILES = $(SRC_DIR)/vector.cu $(SRC_DIR)/vector_kernels.cu
-TEST_FILES = $(TEST_DIR)/test_vector.cpp
+VECTOR_SRC_FILES = $(SRC_DIR)/vector/vector.cu $(SRC_DIR)/vector/vector_kernels.cu
+MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
 
-OUTPUT = $(BUILD_DIR)/run_tests
+VECTOR_TEST_FILE = $(TEST_DIR)/test_vector.cpp
+MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
 
-build: $(OUTPUT)
+VECTOR_OUTPUT = $(BUILD_DIR)/test_vector
+MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
 
-$(OUTPUT): $(SRC_FILES) $(TEST_FILES)
+all: $(VECTOR_OUTPUT) $(MATRIX_OUTPUT)
+
+$(VECTOR_OUTPUT): $(VECTOR_SRC_FILES) $(VECTOR_TEST_FILE)
 	mkdir -p $(BUILD_DIR)
-	$(NVCC) $(CFLAGS) -o $(OUTPUT) $(TEST_FILES) $(SRC_FILES)
+	$(NVCC) $(CFLAGS) -o $(VECTOR_OUTPUT) $(VECTOR_TEST_FILE) $(VECTOR_SRC_FILES)
+
+$(MATRIX_OUTPUT): $(MATRIX_SRC_FILES) $(MATRIX_TEST_FILE)
+	mkdir -p $(BUILD_DIR)
+	$(NVCC) $(CFLAGS) -o $(MATRIX_OUTPUT) $(MATRIX_TEST_FILE) $(MATRIX_SRC_FILES)
 
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all build clean
+.PHONY: all clean
