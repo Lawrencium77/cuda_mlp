@@ -58,6 +58,10 @@ Matrix Matrix::matmul(const Matrix& other) {
 };
 
 Matrix Matrix::softmax() {
+    if (cols > 256){
+        std::cerr << "Softmax kernels doesn't support matrix width > 256" << std::endl;
+        exit(1);
+    }
     Matrix result(rows, cols);
 
     dim3 blockSize(1, 256);
