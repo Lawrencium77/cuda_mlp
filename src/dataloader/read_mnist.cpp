@@ -1,7 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
+#include "dataloader.h"
 
 int readBigEndianInt(std::ifstream& file) {
     unsigned char bytes[4];
