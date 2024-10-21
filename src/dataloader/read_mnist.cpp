@@ -1,4 +1,4 @@
-#include "dataloader.h"
+#include "read_mnist.h"
 
 int readBigEndianInt(std::ifstream& file) {
     unsigned char bytes[4];
