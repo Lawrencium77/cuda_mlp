@@ -67,6 +67,23 @@ std::vector<unsigned char> read_mnist_labels(const std::string& filename) {
     return labels;
 }
 
+// Useful for debugging
+void printImageArray(
+  const std::vector<std::vector<unsigned char> >& images,
+  const std::vector<unsigned char> labels) {
+  std::vector<unsigned char> image = images[0];
+  unsigned char label = labels[0];
+
+  
+  std::cout << "Data for label " << (int)label << "\n" << std::endl;
+  for (int i = 0; i < image.size(); ++i) {
+    std::cout << (int)image[i] << " ";
+    if ((i + 1) % 28 == 0) {
+      std::cout << std::endl;
+    }
+  }
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <mnist_data_directory>\n";
