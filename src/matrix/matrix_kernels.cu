@@ -51,3 +51,14 @@ __global__ void matrix_softmax(float *a, float* b, int rows_a, int cols_a) {
         }
     }
 }
+
+// rows_a = len(labels)
+__global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        b[index] = 1 / (1 + expf(-1 * a[index]));
+    }
+}

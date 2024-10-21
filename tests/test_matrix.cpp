@@ -58,6 +58,16 @@ void testSoftmax(float* data, int rows, int cols) {
     printData(data, rows, cols);
 }
 
+void testSigmoid(float* data, int rows, int cols) {
+    Matrix matrix1(rows, cols);
+    matrix1.setData(data);
+
+    Matrix output = matrix1.sigmoid();
+
+    output.getData(data);
+    printData(data, rows, cols);
+}
+
 void runTests() {
     int rows = 8;
     int cols = 8;
@@ -84,6 +94,10 @@ void runTests() {
     std::cout << "Testing Softmax Op" << std::endl;
     testSoftmax(data, rows, cols);
 
+    std::cout << "Testing Sigmoid Op" << std::endl;
+    testSigmoid(data, rows, cols);
+
+    delete [] data;
 }
 
 int main() {
