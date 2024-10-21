@@ -24,6 +24,18 @@ void testAdd(float* data, int rows, int cols) {
     printData(data, rows, cols);
 }
 
+void testHadamard(float* data, int rows, int cols) {
+    Matrix matrix1(rows, cols);
+    Matrix matrix2(rows, cols);
+    matrix1.setData(data);
+    matrix2.setData(data);
+
+    Matrix output = matrix1 * matrix2;
+    
+    output.getData(data);
+    printData(data, rows, cols);
+}
+
 void testMul(float* data, int rows, int cols) {
     Matrix matrix1(rows, cols);
     Matrix matrix2(rows, cols);
@@ -62,6 +74,9 @@ void runTests() {
 
     std::cout << "Testing Add Op" << std::endl;
     testAdd(data, rows, cols);
+
+    std::cout << "Testing Hadamard Op" << std::endl;
+    testHadamard(data, rows, cols);
 
     std::cout << "Testing Mul Op" << std::endl;
     testMul(data, rows, cols);

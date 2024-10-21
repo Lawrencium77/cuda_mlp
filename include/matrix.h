@@ -20,6 +20,7 @@ class Matrix {
       void getData(float* host_data);
 
       Matrix operator+(Matrix& other); // TODO: Make const arg
+      Matrix operator*(Matrix& other); // TODO: Make const arg
       Matrix matmul(const Matrix& other);
       Matrix softmax();
 
