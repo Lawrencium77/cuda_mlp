@@ -103,3 +103,15 @@ Matrix Matrix::sigmoid() {
     cudaDeviceSynchronize();
     return result;
 };
+
+void Matrix::random() {
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    unsigned long seed = 0;
+    fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols);
+    cudaDeviceSynchronize();
+};

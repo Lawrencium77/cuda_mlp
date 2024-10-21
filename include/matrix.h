@@ -24,6 +24,7 @@ class Matrix {
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();
+      void random();
 
       float* getDataPtr(){
         return data;

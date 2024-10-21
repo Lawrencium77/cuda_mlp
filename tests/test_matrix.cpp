@@ -57,6 +57,15 @@ void testSigmoid(float* data, int rows, int cols) {
     printMatrixData(data, rows, cols);
 }
 
+void testRandom(int rows, int cols) {
+    Matrix matrix(rows, cols);
+    matrix.random();
+
+    float* data = new float[rows * cols];
+    matrix.getData(data);
+    printMatrixData(data, rows, cols);
+}
+
 void runTests() {
     int rows = 8;
     int cols = 8;
@@ -85,6 +94,9 @@ void runTests() {
 
     std::cout << "Testing Sigmoid Op" << std::endl;
     testSigmoid(data, rows, cols);
+
+    std::cout << "Testing Random Init Op" << std::endl;
+    testRandom(rows, cols);
 
     delete [] data;
 }
