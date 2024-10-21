@@ -10,15 +10,18 @@ BUILD_DIR = build
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
 VECTOR_SRC_FILES = $(SRC_DIR)/vector/vector.cu $(SRC_DIR)/vector/vector_kernels.cu
 MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
+MODEL_SRC_FILES = $(SRC_DIR)/network/model.cpp
 
 VECTOR_TEST_FILE = $(TEST_DIR)/test_vector.cpp
 MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
+MODEL_TEST_FILE = $(TEST_DIR)/test_model.cpp
 
 DATA_OUTPUT = $(BUILD_DIR)/read_mnist
 VECTOR_OUTPUT = $(BUILD_DIR)/test_vector
 MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
+MODEL_OUTPUT = $(BUILD_DIR)/test_model
 
-all: $(VECTOR_OUTPUT) $(MATRIX_OUTPUT) $(DATA_OUTPUT)
+all: $(VECTOR_OUTPUT) $(MATRIX_OUTPUT) $(DATA_OUTPUT) $(MODEL_OUTPUT)
 
 data: $(DATA_OUTPUT)
 
@@ -33,6 +36,11 @@ $(VECTOR_OUTPUT): $(VECTOR_SRC_FILES) $(VECTOR_TEST_FILE)
 $(MATRIX_OUTPUT): $(MATRIX_SRC_FILES) $(MATRIX_TEST_FILE)
 	mkdir -p $(BUILD_DIR)
 	$(NVCC) $(CFLAGS) -o $(MATRIX_OUTPUT) $(MATRIX_TEST_FILE) $(MATRIX_SRC_FILES)
+
+$(MODEL_OUTPUT): $(MODEL_SRC_FILES) $(MODEL_TEST_FILE) $(MATRIX_SRC_FILES)
+	mkdir -p $(BUILD_DIR)
+	$(NVCC) $(CFLAGS) -o $(MODEL_OUTPUT) $(MODEL_TEST_FILE) $(MODEL_SRC_FILES) $(MATRIX_SRC_FILES)
+
 
 clean:
 	rm -rf $(BUILD_DIR)
