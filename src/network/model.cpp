@@ -1,6 +1,8 @@
 #include "model.h"
 
-SingleLayerPerceptron::SingleLayerPerceptron(int feat_dim) : feat_dim(feat_dim), weights(feat_dim, feat_dim) {}
+SingleLayerPerceptron::SingleLayerPerceptron(int feat_dim) : feat_dim(feat_dim), weights(feat_dim, feat_dim) {
+    weights.random();
+}
 
 Matrix SingleLayerPerceptron::forward(Matrix& input) {
   Matrix intermediate = weights.matmul(input);
