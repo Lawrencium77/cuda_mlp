@@ -59,7 +59,7 @@ void testSigmoid(float* data, int rows, int cols) {
 
 void testRandom(int rows, int cols) {
     Matrix matrix(rows, cols);
-    matrix.random();
+    matrix.random(0);
 
     float* data = new float[rows * cols];
     matrix.getData(data);

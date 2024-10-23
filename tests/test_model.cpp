@@ -3,6 +3,7 @@
 
 void testSingleLayerForward(float* data, Matrix& input, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim);
+  slp.randomise(0);
   Matrix output = slp.forward(input);
   
   output.getData(data);
@@ -11,6 +12,7 @@ void testSingleLayerForward(float* data, Matrix& input, int feat_dim) {
 
 void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers) {
   MLP mlp(feat_dim, num_layers);
+  mlp.randomise(0);
   Matrix output = mlp.forward(input);
   
   output.getData(data);

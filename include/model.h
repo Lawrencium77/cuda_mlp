@@ -10,6 +10,7 @@ class SingleLayerPerceptron {
   public:
     SingleLayerPerceptron(int feat_dim);
     Matrix forward(Matrix& input);
+    void randomise(unsigned long seed = 0);
 };
 
 
@@ -24,5 +25,6 @@ class MLP {
   public:
     MLP(int feat_dim, int num_layers);
     Matrix forward(Matrix& input);
+    void randomise(unsigned long seed = 0);
 
 };

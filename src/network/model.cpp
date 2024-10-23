@@ -1,7 +1,9 @@
 #include "model.h"
 
-SingleLayerPerceptron::SingleLayerPerceptron(int feat_dim) : feat_dim(feat_dim), weights(feat_dim, feat_dim) {
-    weights.random();
+SingleLayerPerceptron::SingleLayerPerceptron(int feat_dim) : feat_dim(feat_dim), weights(feat_dim, feat_dim) {}
+
+void SingleLayerPerceptron::randomise(unsigned long seed) {
+  weights.random(seed);
 }
 
 Matrix SingleLayerPerceptron::forward(Matrix& input) {
@@ -22,4 +24,10 @@ Matrix MLP::forward(Matrix& input){
         y = layers[i].forward(y);
     }
     return y;
+}
+
+void MLP::randomise(unsigned long seed) {
+    for (int i = 0; i < num_layers; ++i) {
+        layers[i].randomise(seed + i); // Randomise each layer with a different seed
+    }
 }
