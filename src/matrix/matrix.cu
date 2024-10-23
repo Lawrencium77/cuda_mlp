@@ -1,5 +1,3 @@
-// Implements Vector class
-
 #include "matrix.h"
 #include "matrix_kernels.h"
 #include <iostream>

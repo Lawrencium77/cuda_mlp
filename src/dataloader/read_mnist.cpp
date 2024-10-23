@@ -80,19 +80,3 @@ void printImageArray(
     }
   }
 }
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <mnist_data_directory>\n";
-        return EXIT_FAILURE;
-    }
-
-    std::string data_dir = argv[1];
-    std::string image_file = data_dir + "/t10k-images-idx3-ubyte";
-    std::string label_file = data_dir + "/t10k-labels-idx1-ubyte";
-
-    std::vector<std::vector<unsigned char> > images = read_mnist_images(image_file);
-    std::vector<unsigned char> labels = read_mnist_labels(label_file);
-
-    return 0;
-}
