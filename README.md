@@ -5,7 +5,6 @@ Training an MLP on MNIST in raw CUDA.
 
 * Cross-entropy loss.
 * Backprop.
-* Data loading.
 
 ### Later On
 

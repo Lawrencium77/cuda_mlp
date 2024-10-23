@@ -1,16 +1,5 @@
-#include <iostream>
 #include "matrix.h"
-
-void printData(const float* data, int rows, int cols) {
-    std::cout << "Data: \n";
-    for (int i = 0; i < rows; i++){
-        for (int j = 0; j < cols; j++){
-            std::cout << data[i * cols + j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-};
+#include "test_utils.h"
 
 void testAdd(float* data, int rows, int cols) {
     Matrix matrix1(rows, cols);
@@ -21,7 +10,7 @@ void testAdd(float* data, int rows, int cols) {
     Matrix output = matrix1 + matrix2;
     
     output.getData(data);
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
 }
 
 void testHadamard(float* data, int rows, int cols) {
@@ -33,7 +22,7 @@ void testHadamard(float* data, int rows, int cols) {
     Matrix output = matrix1 * matrix2;
     
     output.getData(data);
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
 }
 
 void testMul(float* data, int rows, int cols) {
@@ -45,7 +34,7 @@ void testMul(float* data, int rows, int cols) {
     Matrix output = matrix1.matmul(matrix2);
     
     output.getData(data);
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
 }
 
 void testSoftmax(float* data, int rows, int cols) {
@@ -55,7 +44,7 @@ void testSoftmax(float* data, int rows, int cols) {
     Matrix output = matrix1.softmax();
 
     output.getData(data);
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
 }
 
 void testSigmoid(float* data, int rows, int cols) {
@@ -65,7 +54,16 @@ void testSigmoid(float* data, int rows, int cols) {
     Matrix output = matrix1.sigmoid();
 
     output.getData(data);
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
+}
+
+void testRandom(int rows, int cols) {
+    Matrix matrix(rows, cols);
+    matrix.random(0);
+
+    float* data = new float[rows * cols];
+    matrix.getData(data);
+    printMatrixData(data, rows, cols);
 }
 
 void runTests() {
@@ -80,7 +78,7 @@ void runTests() {
     }
     
     std::cout << "Testing Print Op" << std::endl;
-    printData(data, rows, cols);
+    printMatrixData(data, rows, cols);
 
     std::cout << "Testing Add Op" << std::endl;
     testAdd(data, rows, cols);
@@ -96,6 +94,9 @@ void runTests() {
 
     std::cout << "Testing Sigmoid Op" << std::endl;
     testSigmoid(data, rows, cols);
+
+    std::cout << "Testing Random Init Op" << std::endl;
+    testRandom(rows, cols);
 
     delete [] data;
 }

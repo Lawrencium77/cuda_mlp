@@ -20,6 +20,25 @@ void Matrix::getData(float* host_data) {
     cudaMemcpy(host_data, data, numel * sizeof(float), cudaMemcpyDeviceToHost);
 }
 
+Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), numel(other.numel) {
+    cudaMalloc(&data, numel * sizeof(float));
+    cudaMemcpy(data, other.data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
+}
+
+Matrix& Matrix::operator=(const Matrix& other) {
+    if (this != &other) {
+        cudaFree(data);
+
+        rows = other.rows;
+        cols = other.cols;
+        numel = other.numel;
+
+        cudaMalloc(&data, numel * sizeof(float));
+        cudaMemcpy(data, other.data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
+    }
+    return *this;
+}
+
 Matrix Matrix::operator+(Matrix& other) {
     if (rows != other.rows || cols != other.cols){
         std::cerr << "Matrix dimensions must match for addition!" << std::endl;
@@ -102,4 +121,15 @@ Matrix Matrix::sigmoid() {
     matrix_sigmoid<<<gridSize, blockSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
+};
+
+void Matrix::random(unsigned long seed) {
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols);
+    cudaDeviceSynchronize();
 };
