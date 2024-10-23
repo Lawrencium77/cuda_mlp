@@ -15,10 +15,14 @@ class Matrix {
 
       ~Matrix();
 
+      Matrix(const Matrix& other);
+
       void setData(const float* host_data);
 
       void getData(float* host_data);
 
+      Matrix& operator=(const Matrix& other);
+      
       Matrix operator+(Matrix& other); // TODO: Make const arg
       Matrix operator*(Matrix& other); // TODO: Make const arg
       Matrix matmul(const Matrix& other);
