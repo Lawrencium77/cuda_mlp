@@ -17,20 +17,25 @@ void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers) {
   printMatrixData(data, feat_dim, feat_dim);
 }
 
+void setHostDataToConst(float* data, int numel, float value) {
+  for (int i = 0; i < numel; i++){
+      data[i] = value;
+  }
+}
+
 void runTests() {
   int feat_dim = 8;
   int numel = feat_dim * feat_dim;
   
   float* data = new float[numel];
-  for (int i = 0; i < numel; i++){
-      data[i] = 1.0f;
-  }
+  setHostDataToConst(data, numel, 1.0f);
 
   Matrix input = Matrix(feat_dim, feat_dim);
   input.setData(data);
   testSingleLayerForward(data, input, feat_dim);
 
   int num_layers = 4;
+  setHostDataToConst(data, numel, 1.0f);
   testMLPForward(data, input, feat_dim, num_layers);
 }
 
