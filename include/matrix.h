@@ -33,6 +33,10 @@ class Matrix {
       float* getDataPtr(){
         return data;
       }
+
+      int getNumel(){
+        return numel;
+      }
 };
 
 #endif

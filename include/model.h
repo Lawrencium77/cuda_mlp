@@ -21,6 +21,7 @@ class MLP {
   private:
     int feat_dim;
     int num_layers; 
+    int output_classes = 10;
     std::vector<SingleLayerPerceptron> layers;
   
   public:

@@ -19,7 +19,7 @@ MLP::MLP(int feat_dim, int num_layers) : feat_dim(feat_dim), num_layers(num_laye
     for (int i = 0; i < num_layers; ++i) {
         layers.push_back(SingleLayerPerceptron(feat_dim, feat_dim));
     }
-    layers.push_back(SingleLayerPerceptron(feat_dim, feat_dim));
+    layers.push_back(SingleLayerPerceptron(output_classes, feat_dim));
 }
 
 Matrix MLP::forward(Matrix& input){
