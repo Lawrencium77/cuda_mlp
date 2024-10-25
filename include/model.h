@@ -4,11 +4,12 @@
 
 class SingleLayerPerceptron {
   private:
-    int feat_dim;
+    int dim_out;
+    int dim_in;
     Matrix weights;
 
   public:
-    SingleLayerPerceptron(int feat_dim);
+    SingleLayerPerceptron(int dim_out, int dim_in);
     Matrix forward(Matrix& input);
     void randomise(unsigned long seed = 0);
 };
