@@ -29,6 +29,8 @@ class Matrix {
       Matrix operator+(Matrix& other); // TODO: Make const arg
       Matrix operator*(Matrix& other); // TODO: Make const arg
 
+      Matrix transpose();
+
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();

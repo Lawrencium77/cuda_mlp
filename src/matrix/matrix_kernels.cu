@@ -41,6 +41,15 @@ __global__ void matrix_hadamard(float *a, float *b, float *c, int rows, int cols
     }
 }
 
+__global__ void matrix_transpose(float *a, float *b, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        b[col * rows + row] = a[row * cols + col];
+    }
+}
+
 // cols_a = rows_b
 __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int cols_a, int cols_b) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;

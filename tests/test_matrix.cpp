@@ -45,6 +45,12 @@ void testHadamard(float* data, int rows, int cols) {
     printMatrixData(data, rows, cols);
 }
 
+void testTranspose(Matrix& input, float* data, int rows, int cols) {
+    Matrix output = input.transpose();
+    output.getData(data);
+    printMatrixData(data, cols, rows);
+}
+
 void testMul(float* data, int rows, int cols) {
     Matrix matrix1(rows, cols);
     Matrix matrix2(rows, cols);
@@ -136,6 +142,9 @@ void runTests() {
 
     std::cout << "Testing Random Init Op" << std::endl;
     Matrix random_values = testRandom(rows, cols);
+
+    std::cout << "Testing Transpoe Op" << std::endl;
+    testTranspose(random_values, data, rows, cols);
 
     std::cout << "Testing Softmax Op" << std::endl;
     Matrix normalised_values = testSoftmax(random_values, data, rows, cols);

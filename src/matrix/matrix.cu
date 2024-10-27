@@ -101,6 +101,20 @@ Matrix Matrix::operator*(Matrix& other) {
     return result;
 }
 
+Matrix Matrix::transpose() {
+    Matrix result(cols, rows);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,  // Ceil(cols / blockSize.x)
+        (rows + blockSize.y - 1) / blockSize.y   // Ceil(rows / blockSize.y)
+    );
+
+    matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
 Matrix Matrix::matmul(const Matrix& other) {
     if (cols != other.rows){
         std::cerr << "Trying to multiply two matrices with non-matchiing inner dim" << std::endl;
