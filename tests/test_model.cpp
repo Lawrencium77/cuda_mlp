@@ -27,7 +27,7 @@ void setHostDataToConst(float* data, int numel, float value) {
 
 void runTests() {
   int feat_dim = 8;
-  int bsz = 16;
+  int bsz = 4;
   int num_clases = 10;
   int input_numel = feat_dim * bsz;
   int output_numel = num_clases * bsz;
