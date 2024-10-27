@@ -17,6 +17,17 @@ void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers, in
   
   output.getData(data);
   printMatrixData(data, num_clases, bsz);
+
+  float* labels_data = new float[bsz];
+  for (int i = 0; i < bsz; i++){
+      labels_data[i] = 0;
+  }
+  Matrix labels(1, bsz);
+  labels.setData(labels_data);
+
+  Matrix losses = output.get_ce_loss(labels);
+  losses.getData(data);
+  printMatrixData(data, 1, bsz);
 }
 
 void setHostDataToConst(float* data, int numel, float value) {
