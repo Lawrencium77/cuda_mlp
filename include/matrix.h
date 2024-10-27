@@ -11,6 +11,7 @@ class Matrix {
       int numel;
 
   public:
+      Matrix(); 
       Matrix(int rows, int cols);
 
       ~Matrix();
@@ -47,5 +48,8 @@ class Matrix {
         return numel;
       }
 };
+
+// Non-member operator
+Matrix operator-(const float value, Matrix& mat);
 
 #endif

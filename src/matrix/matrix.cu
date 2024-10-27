@@ -2,6 +2,8 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
+Matrix::Matrix() : rows(0), cols(0), numel(0), data(nullptr) {}
+
 Matrix::Matrix(int rows, int cols) : rows(rows), cols(cols), numel(rows * cols) {
     cudaMalloc(&data, numel * sizeof(float));
 }
@@ -73,6 +75,11 @@ Matrix Matrix::operator*(const float value) {
 Matrix Matrix::operator/(const float value) {
     float inv_value = 1 / value;
     return *this * inv_value;
+}
+
+Matrix operator-(const float value, Matrix& mat) {
+    Matrix negative_matrix = mat * -1.0f;
+    return negative_matrix + value;
 }
 
 Matrix Matrix::operator+(Matrix& other) {

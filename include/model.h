@@ -6,10 +6,13 @@ class SingleLayerPerceptron {
     int dim_out;
     int dim_in;
     Matrix weights;
+    Matrix grads;
+    Matrix inputs;
 
   public:
     SingleLayerPerceptron(int dim_out, int dim_in);
     Matrix forward(Matrix& input);
+    Matrix backward(Matrix& grad);
     void randomise(unsigned long seed = 0);
 };
 
