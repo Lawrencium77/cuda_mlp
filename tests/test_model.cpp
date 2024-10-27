@@ -10,13 +10,13 @@ void testSingleLayerForward(float* data, Matrix& input, int feat_dim, int bsz) {
   printMatrixData(data, feat_dim, bsz);
 }
 
-void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers, int num_clases, int bsz) {
+void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers, int num_classes, int bsz) {
   MLP mlp(feat_dim, num_layers);
   mlp.randomise(0);
   Matrix output = mlp.forward(input);
   
   output.getData(data);
-  printMatrixData(data, num_clases, bsz);
+  printMatrixData(data, num_classes, bsz);
 
   float* labels_data = new float[bsz];
   for (int i = 0; i < bsz; i++){
@@ -39,9 +39,9 @@ void setHostDataToConst(float* data, int numel, float value) {
 void runTests() {
   int feat_dim = 8;
   int bsz = 4;
-  int num_clases = 10;
+  int num_classes = 10;
   int input_numel = feat_dim * bsz;
-  int output_numel = num_clases * bsz;
+  int output_numel = num_classes * bsz;
   
   float* input_data = new float[input_numel];
   setHostDataToConst(input_data, input_numel, 1.0f);
@@ -53,7 +53,7 @@ void runTests() {
   int num_layers = 4;
   float* output_data = new float[output_numel];
   setHostDataToConst(input_data, input_numel, 1.0f);
-  testMLPForward(output_data, input, feat_dim, num_layers, num_clases, bsz);
+  testMLPForward(output_data, input, feat_dim, num_layers, num_classes, bsz);
 
   delete [] input_data;
   delete [] output_data;
