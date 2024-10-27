@@ -41,6 +41,11 @@ Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   }
 }
 
+void SingleLayerPerceptron::update_weights(float lr) {
+  Matrix update = grads * (-1 * lr);
+  weights = weights + update;
+}
+
 
 
 MLP::MLP(int feat_dim, int num_layers) : feat_dim(feat_dim), num_layers(num_layers) {
@@ -64,6 +69,12 @@ void MLP::backward(Matrix& labels, Matrix& preds){
     for (int i = num_layers; i >= 0; --i) {
         grads = layers[i].backward(grads);
     }
+}
+
+void MLP::update_weights(float lr) {
+  for (int i = 0; i < num_layers + 1; ++i) {
+      layers[i].update_weights(lr);
+  }
 }
 
 void MLP::randomise(unsigned long seed) {

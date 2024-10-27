@@ -12,6 +12,7 @@ struct SingleLayerPerceptron {
     SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid = true);
     Matrix forward(Matrix& input);
     Matrix backward(Matrix& grad);
+    void update_weights(float lr);
     void randomise(unsigned long seed = 0);
 };
 
@@ -26,5 +27,6 @@ struct MLP {
     MLP(int feat_dim, int num_layers);
     Matrix forward(Matrix& input);
     void backward(Matrix& labels, Matrix& preds);
+    void update_weights(float lr);
     void randomise(unsigned long seed = 0);
 };

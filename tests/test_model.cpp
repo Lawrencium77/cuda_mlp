@@ -58,8 +58,15 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
   float* data = new float[feat_dim * feat_dim];
   Matrix grads = mlp.layers[0].grads;
   grads.getData(data);
-  printMatrixData(data, feat_dim, feat_dim);
+  printMatrixData(data, feat_dim, feat_dim, "for first layer gradients");
 
+  // Update weights
+  float lr = 1.0;
+  mlp.layers[0].weights.getData(data);
+  printMatrixData(data, feat_dim, feat_dim, "before weight update");
+  mlp.update_weights(lr);
+  mlp.layers[0].weights.getData(data);
+  printMatrixData(data, feat_dim, feat_dim, "after weight update");
 }
 
 void setHostDataToConst(float* data, int numel, float value) {
