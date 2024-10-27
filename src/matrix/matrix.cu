@@ -100,7 +100,7 @@ Matrix Matrix::softmax() {
     Matrix result(rows, cols);
 
     dim3 blockSize(1, 256);
-    dim3 gridSize(1, (rows + blockSize.y - 1) / blockSize.y);
+    dim3 gridSize(cols, 1);
 
     matrix_softmax<<<blockSize, gridSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
