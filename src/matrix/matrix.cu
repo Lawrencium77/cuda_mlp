@@ -2,6 +2,8 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
+Matrix::Matrix() : rows(0), cols(0), numel(0), data(nullptr) {}
+
 Matrix::Matrix(int rows, int cols) : rows(rows), cols(cols), numel(rows * cols) {
     cudaMalloc(&data, numel * sizeof(float));
 }
@@ -37,6 +39,49 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
+Matrix Matrix::operator+(const float value) {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
+        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+    );
+
+    matrix_const_add<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix Matrix::operator-(const float value) {
+    float negative_value = -value;
+    return *this + negative_value;
+}
+
+Matrix Matrix::operator*(const float value) {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
+        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+    );
+
+    matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix Matrix::operator/(const float value) {
+    float inv_value = 1 / value;
+    return *this * inv_value;
+}
+
+Matrix operator-(const float value, Matrix& mat) {
+    Matrix negative_matrix = mat * -1.0f;
+    return negative_matrix + value;
+}
+
 Matrix Matrix::operator+(Matrix& other) {
     if (rows != other.rows || cols != other.cols){
         std::cerr << "Matrix dimensions must match for addition!" << std::endl;
@@ -69,6 +114,42 @@ Matrix Matrix::operator*(Matrix& other) {
     );
 
     matrix_hadamard<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+float Matrix::sum() {
+    float* d_sum;
+    cudaMalloc(&d_sum, sizeof(float));
+    cudaMemset(d_sum, 0, sizeof(float));
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_sum<<<gridSize, blockSize>>>(data, d_sum, rows, cols);
+    cudaDeviceSynchronize();
+
+    float h_sum = 0.0f;
+    cudaMemcpy(&h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaFree(d_sum);
+    return h_sum;
+}
+
+
+Matrix Matrix::transpose() {
+    Matrix result(cols, rows);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,  // Ceil(cols / blockSize.x)
+        (rows + blockSize.y - 1) / blockSize.y   // Ceil(rows / blockSize.y)
+    );
+
+    matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -147,3 +228,22 @@ Matrix Matrix::get_ce_loss(Matrix& labels) {
     cudaDeviceSynchronize();
     return losses;
 };
+
+//  label => (1, bsz) => represents the index of the correct output
+//  softmax_output => (feats, bsz)
+Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output) {
+    int feats = softmax_output.getRows();
+    int bsz = softmax_output.getCols();
+
+    Matrix softmax_grads = Matrix(feats, bsz);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (bsz + blockSize.x - 1) / blockSize.x,
+        (feats + blockSize.y - 1) / blockSize.y
+    );
+
+    softmax_bwd<<<gridSize, blockSize>>>(label.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), feats, bsz);
+    cudaDeviceSynchronize();
+    return softmax_grads;
+}

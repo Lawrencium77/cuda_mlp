@@ -1,6 +1,38 @@
 // CUDA kernels for Matrix class
 #include "matrix_kernels.h"
 
+__global__ void matrix_const_add(float *a, float value, float *output, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        output[index] = a[index] + value;
+    }
+}
+
+__global__ void matrix_const_mul(float *a, float value, float *output, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        output[index] = a[index] * value;
+    }
+}
+
+__global__ void matrix_sum(float* data, float* sum, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        float value = data[index];
+        atomicAdd(sum, value);
+    }
+}
+
+
 __global__ void matrix_add(float *a, float *b, float *c, int rows, int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -18,6 +50,15 @@ __global__ void matrix_hadamard(float *a, float *b, float *c, int rows, int cols
     if (row < rows && col < cols) {
         int index = row * cols + col;
         c[index] = a[index] * b[index];
+    }
+}
+
+__global__ void matrix_transpose(float *a, float *b, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        b[col * rows + row] = a[row * cols + col];
     }
 }
 
@@ -84,5 +125,22 @@ __global__ void ce_loss(float *preds, float *labels, float *losses, int rows, in
     if (col < cols) {
         int label = (int)labels[col];
         losses[col] = -1 * logf(preds[label * cols + col]);
+    }
+}
+
+__global__ void softmax_bwd(float* labels, float* softmax_outputs, float* softmax_grads, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int idx = row * cols + col;
+        int label_idx = (int)labels[col];
+
+        // https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/#derivation-of-softmax
+        if (row == label_idx) {
+            softmax_grads[idx] = softmax_outputs[idx] - 1.0f;
+        } else {
+            softmax_grads[idx] = softmax_outputs[idx];
+        }
     }
 }

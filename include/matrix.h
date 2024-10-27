@@ -11,6 +11,7 @@ class Matrix {
       int numel;
 
   public:
+      Matrix(); 
       Matrix(int rows, int cols);
 
       ~Matrix();
@@ -23,8 +24,18 @@ class Matrix {
 
       Matrix& operator=(const Matrix& other);
       
+      Matrix operator+(const float value);
+      Matrix operator-(const float value);
+      Matrix operator*(const float value);
+      Matrix operator/(const float value);
+
+      float sum();
+      
       Matrix operator+(Matrix& other); // TODO: Make const arg
       Matrix operator*(Matrix& other); // TODO: Make const arg
+
+      Matrix transpose();
+
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();
@@ -35,9 +46,21 @@ class Matrix {
         return data;
       }
 
+      int getRows(){
+        return rows;
+      }
+
+      int getCols(){
+        return cols;
+      }
+      
       int getNumel(){
         return numel;
       }
 };
+
+// Non-member operator
+Matrix operator-(const float value, Matrix& mat);
+Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output);
 
 #endif
