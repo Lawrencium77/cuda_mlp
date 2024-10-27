@@ -13,5 +13,6 @@ __global__ void matrix_softmax(float *a, float* b, int rows, int cols);
 __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols);
 __global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols);
 __global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols);
+__global__ void softmax_bwd(float* label, float* softmax_output, float* softmax_grads, int rows, int cols);
 #endif
 #endif

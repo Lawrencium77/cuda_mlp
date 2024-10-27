@@ -59,5 +59,6 @@ class Matrix {
 
 // Non-member operator
 Matrix operator-(const float value, Matrix& mat);
+Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output);
 
 #endif

@@ -92,6 +92,27 @@ Matrix testRandom(int rows, int cols) {
     return matrix;
 }
 
+//  grad => (1, bsz)
+//  label => (1, bsz) => which represents the index of softmax_output that contributed to the loss
+//  softmax_out => (feats, bsz)
+
+void testSoftmaxBwd(int rows, int cols) {
+    Matrix labels(1, cols);
+    Matrix softmax_out(rows, cols);
+
+    softmax_out.random(0);
+    float* labels_data = new float[cols];
+    for (int i = 0; i < cols; i++){
+        labels_data[i] = 0;
+    }
+
+    Matrix output = ce_softmax_bwd(labels, softmax_out);
+    
+    float* data = new float[rows * cols];
+    output.getData(data);
+    printMatrixData(data, rows, cols);
+}
+
 void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
     Matrix labels(1, bsz);
 
@@ -151,6 +172,9 @@ void runTests() {
 
     std::cout << "Testing Cross Entropy Op" << std::endl;
     testCrossEntropy(normalised_values, rows, cols);
+
+    std::cout << "Testing Softmax Bwd" << std::endl;
+    testSoftmaxBwd(rows, cols);
 
     delete [] data;
 }

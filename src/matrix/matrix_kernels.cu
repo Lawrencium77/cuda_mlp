@@ -115,3 +115,20 @@ __global__ void ce_loss(float *preds, float *labels, float *losses, int rows, in
         losses[col] = -1 * logf(preds[label * cols + col]);
     }
 }
+
+__global__ void softmax_bwd(float* labels, float* softmax_outputs, float* softmax_grads, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int idx = row * cols + col;
+        int label_idx = (int)labels[col];
+
+        // https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/#derivation-of-softmax
+        if (row == label_idx) {
+            softmax_grads[idx] = softmax_outputs[idx] - 1.0f;
+        } else {
+            softmax_grads[idx] = softmax_outputs[idx];
+        }
+    }
+}

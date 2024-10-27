@@ -206,3 +206,22 @@ Matrix Matrix::get_ce_loss(Matrix& labels) {
     cudaDeviceSynchronize();
     return losses;
 };
+
+//  label => (1, bsz) => represents the index of the correct output
+//  softmax_output => (feats, bsz)
+Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output) {
+    int feats = softmax_output.getRows();
+    int bsz = softmax_output.getCols();
+
+    Matrix softmax_grads = Matrix(feats, bsz);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (bsz + blockSize.x - 1) / blockSize.x,
+        (feats + blockSize.y - 1) / blockSize.y
+    );
+
+    softmax_bwd<<<gridSize, blockSize>>>(label.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), feats, bsz);
+    cudaDeviceSynchronize();
+    return softmax_grads;
+}
