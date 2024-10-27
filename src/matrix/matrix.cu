@@ -140,8 +140,8 @@ Matrix Matrix::get_ce_loss(Matrix& labels) {
 
     Matrix losses = Matrix(1, cols);
 
-    dim3 blockSize(32, 1);
-    dim3 gridSize(cols / blockSize.x + 1, 1);
+    dim3 blockSize(1, 32);
+    dim3 gridSize(1, cols / blockSize.y + 1);
 
     ce_loss<<<gridSize, blockSize>>>(data, labels.data, losses.data, rows, cols);
     cudaDeviceSynchronize();
