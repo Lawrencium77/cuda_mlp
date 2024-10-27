@@ -1,6 +1,26 @@
 // CUDA kernels for Matrix class
 #include "matrix_kernels.h"
 
+__global__ void matrix_const_add(float *a, float value, float *output, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        output[index] = a[index] + value;
+    }
+}
+
+__global__ void matrix_const_mul(float *a, float value, float *output, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        output[index] = a[index] * value;
+    }
+}
+
 __global__ void matrix_add(float *a, float *b, float *c, int rows, int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;

@@ -37,6 +37,34 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
+Matrix Matrix::operator+(const float value) {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
+        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+    );
+
+    matrix_const_add<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix Matrix::operator*(const float value) {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
+        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+    );
+
+    matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
 Matrix Matrix::operator+(Matrix& other) {
     if (rows != other.rows || cols != other.cols){
         std::cerr << "Matrix dimensions must match for addition!" << std::endl;

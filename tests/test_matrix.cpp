@@ -1,6 +1,26 @@
 #include "matrix.h"
 #include "test_utils.h"
 
+void testAddConst(float* data, float value, int rows, int cols) {
+    Matrix matrix(rows, cols);
+    matrix.setData(data);
+
+    Matrix output = matrix + value;
+    
+    output.getData(data);
+    printMatrixData(data, rows, cols);
+}
+
+void testMulConst(float* data, float value, int rows, int cols) {
+    Matrix matrix(rows, cols);
+    matrix.setData(data);
+
+    Matrix output = matrix * value;
+    
+    output.getData(data);
+    printMatrixData(data, rows, cols);
+}
+
 void testAdd(float* data, int rows, int cols) {
     Matrix matrix1(rows, cols);
     Matrix matrix2(rows, cols);
@@ -86,6 +106,7 @@ void runTests() {
     int rows = 8;
     int cols = 8;
     int numel = rows * cols;
+    float value = 1.0f;
 
     float* data = new float[numel];
     for (int i = 0; i < numel; i++){
@@ -94,6 +115,12 @@ void runTests() {
     
     std::cout << "Testing Print Op" << std::endl;
     printMatrixData(data, rows, cols);
+
+    std::cout << "Testing Add Const Op" << std::endl;
+    testAddConst(data, value, rows, cols);
+
+    std::cout << "Testing Mul Const Op" << std::endl;
+    testMulConst(data, value, rows, cols);
 
     std::cout << "Testing Add Op" << std::endl;
     testAdd(data, rows, cols);

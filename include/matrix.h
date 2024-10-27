@@ -23,8 +23,12 @@ class Matrix {
 
       Matrix& operator=(const Matrix& other);
       
+      Matrix operator+(const float value);
+      Matrix operator*(const float value);
+      
       Matrix operator+(Matrix& other); // TODO: Make const arg
       Matrix operator*(Matrix& other); // TODO: Make const arg
+
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();
