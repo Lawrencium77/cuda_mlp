@@ -21,6 +21,18 @@ __global__ void matrix_const_mul(float *a, float value, float *output, int rows,
     }
 }
 
+__global__ void matrix_sum(float* data, float* sum, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        float value = data[index];
+        atomicAdd(sum, value);
+    }
+}
+
+
 __global__ void matrix_add(float *a, float *b, float *c, int rows, int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;

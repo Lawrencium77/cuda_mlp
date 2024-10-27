@@ -118,6 +118,28 @@ Matrix Matrix::operator*(Matrix& other) {
     return result;
 }
 
+float Matrix::sum() {
+    float* d_sum;
+    cudaMalloc(&d_sum, sizeof(float));
+    cudaMemset(d_sum, 0, sizeof(float));
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_sum<<<gridSize, blockSize>>>(data, d_sum, rows, cols);
+    cudaDeviceSynchronize();
+
+    float h_sum = 0.0f;
+    cudaMemcpy(&h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaFree(d_sum);
+    return h_sum;
+}
+
+
 Matrix Matrix::transpose() {
     Matrix result(cols, rows);
 

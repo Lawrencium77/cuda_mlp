@@ -1,6 +1,14 @@
 #include "matrix.h"
 #include "test_utils.h"
 
+void testSum(float* data, int rows, int cols) {
+    Matrix matrix(rows, cols);
+    matrix.setData(data);
+
+    float sum = matrix.sum();
+    std::cout << "Sum: " << sum  << "\n" << std::endl;
+}
+
 void testAddConst(float* data, float value, int rows, int cols) {
     Matrix matrix(rows, cols);
     matrix.setData(data);
@@ -139,6 +147,9 @@ void runTests() {
     
     std::cout << "Testing Print Op" << std::endl;
     printMatrixData(data, rows, cols);
+
+    std::cout << "Testing Sum Op" << std::endl;
+    testSum(data, rows, cols);
 
     std::cout << "Testing Add Const Op" << std::endl;
     testAddConst(data, value, rows, cols);
