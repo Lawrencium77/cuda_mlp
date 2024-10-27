@@ -51,6 +51,11 @@ Matrix Matrix::operator+(const float value) {
     return result;
 }
 
+Matrix Matrix::operator-(const float value) {
+    float negative_value = -value;
+    return *this + negative_value;
+}
+
 Matrix Matrix::operator*(const float value) {
     Matrix result(rows, cols);
 
@@ -63,6 +68,11 @@ Matrix Matrix::operator*(const float value) {
     matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
+}
+
+Matrix Matrix::operator/(const float value) {
+    float inv_value = 1 / value;
+    return *this * inv_value;
 }
 
 Matrix Matrix::operator+(Matrix& other) {
