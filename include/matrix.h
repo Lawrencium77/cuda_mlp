@@ -44,6 +44,14 @@ class Matrix {
         return data;
       }
 
+      int getRows(){
+        return rows;
+      }
+
+      int getCols(){
+        return cols;
+      }
+      
       int getNumel(){
         return numel;
       }
