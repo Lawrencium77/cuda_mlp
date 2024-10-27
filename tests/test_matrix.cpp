@@ -86,7 +86,6 @@ void runTests() {
     int rows = 8;
     int cols = 8;
     int numel = rows * cols;
-    float value = 10.0;
 
     float* data = new float[numel];
     for (int i = 0; i < numel; i++){
