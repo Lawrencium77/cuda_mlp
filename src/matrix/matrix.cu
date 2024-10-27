@@ -131,3 +131,19 @@ void Matrix::random(unsigned long seed) {
     fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols);
     cudaDeviceSynchronize();
 };
+
+Matrix Matrix::get_ce_loss(Matrix& labels) {
+    if (cols != labels.cols) {
+        std::cerr << "Non-matching number of columns for input and labels" << std::endl;
+        exit(1);
+    }
+
+    Matrix losses = Matrix(1, cols);
+
+    dim3 blockSize(32, 1);
+    dim3 gridSize(cols / blockSize.x + 1, 1);
+
+    ce_loss<<<gridSize, blockSize>>>(data, labels.data, losses.data, rows, cols);
+    cudaDeviceSynchronize();
+    return losses;
+};
