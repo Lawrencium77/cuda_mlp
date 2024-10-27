@@ -28,6 +28,7 @@ class Matrix {
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();
+      Matrix get_ce_loss(Matrix& labels);
       void random(unsigned long seed);
 
       float* getDataPtr(){

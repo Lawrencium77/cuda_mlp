@@ -37,14 +37,12 @@ void testMul(float* data, int rows, int cols) {
     printMatrixData(data, rows, cols);
 }
 
-void testSoftmax(float* data, int rows, int cols) {
-    Matrix matrix1(rows, cols);
-    matrix1.setData(data);
-
-    Matrix output = matrix1.softmax();
+Matrix testSoftmax(Matrix& input, float* data, int rows, int cols) {
+    Matrix output = input.softmax();
 
     output.getData(data);
     printMatrixData(data, rows, cols);
+    return output;
 }
 
 void testSigmoid(float* data, int rows, int cols) {
@@ -57,20 +55,37 @@ void testSigmoid(float* data, int rows, int cols) {
     printMatrixData(data, rows, cols);
 }
 
-void testRandom(int rows, int cols) {
+Matrix testRandom(int rows, int cols) {
     Matrix matrix(rows, cols);
     matrix.random(0);
 
     float* data = new float[rows * cols];
     matrix.getData(data);
     printMatrixData(data, rows, cols);
+
+    return matrix;
+}
+
+void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
+    Matrix labels(1, bsz);
+
+    float* labels_data = new float[bsz];
+    for (int i = 0; i < bsz; i++){
+        labels_data[i] = 0;
+    }
+    labels.setData(labels_data);
+
+    Matrix losses = input.get_ce_loss(labels);
+
+    float* data = new float[num_classes * bsz];
+    losses.getData(data);
+    printMatrixData(data, 1, bsz);
 }
 
 void runTests() {
     int rows = 8;
     int cols = 8;
     int numel = rows * cols;
-    float value = 10.0;
 
     float* data = new float[numel];
     for (int i = 0; i < numel; i++){
@@ -89,14 +104,17 @@ void runTests() {
     std::cout << "Testing Mul Op" << std::endl;
     testMul(data, rows, cols);
 
-    std::cout << "Testing Softmax Op" << std::endl;
-    testSoftmax(data, rows, cols);
-
     std::cout << "Testing Sigmoid Op" << std::endl;
     testSigmoid(data, rows, cols);
 
     std::cout << "Testing Random Init Op" << std::endl;
-    testRandom(rows, cols);
+    Matrix random_values = testRandom(rows, cols);
+
+    std::cout << "Testing Softmax Op" << std::endl;
+    Matrix normalised_values = testSoftmax(random_values, data, rows, cols);
+
+    std::cout << "Testing Cross Entropy Op" << std::endl;
+    testCrossEntropy(normalised_values, rows, cols);
 
     delete [] data;
 }

@@ -28,7 +28,7 @@ Matrix MLP::forward(Matrix& input){
         y = layers[i].forward(y);
     }
     y = layers[num_layers].forward(y); // Classification head
-    return y;
+    return y.softmax();
 }
 
 void MLP::randomise(unsigned long seed) {

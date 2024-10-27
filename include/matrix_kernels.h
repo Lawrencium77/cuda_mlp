@@ -9,5 +9,6 @@ __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int co
 __global__ void matrix_softmax(float *a, float* b, int rows, int cols);
 __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols);
 __global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols);
+__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols);
 #endif
 #endif
