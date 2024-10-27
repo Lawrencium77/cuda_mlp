@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include "vector.h"
 #include <vector>
 
 class SingleLayerPerceptron {
