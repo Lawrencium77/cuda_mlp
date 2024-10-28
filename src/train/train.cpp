@@ -59,6 +59,7 @@ void train_loop(
         mlp.backward(data_and_labels.second, output);
         mlp.update_weights(lr);
     }
+    delete [] data;
 }
 
 int main(int argc, char* argv[]) {
