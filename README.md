@@ -8,6 +8,5 @@ Training an MLP on MNIST in raw CUDA/C++.
 
 ### Later On
 
-* Backprop.
 * Logging.
 * Faster operations, e.g. tiled matmuls.
