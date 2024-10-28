@@ -40,7 +40,7 @@ class Matrix {
       Matrix softmax();
       Matrix sigmoid();
       Matrix get_ce_loss(Matrix& labels);
-      void random(unsigned long seed);
+      void random(unsigned long seed, float min, float max);
 
       float* getDataPtr(){
         return data;

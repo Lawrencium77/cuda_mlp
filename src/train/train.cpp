@@ -40,10 +40,14 @@ void train_loop(
   float lr
 ){
     float* data = new float[bsz * 28 * 28];
-    Matrix output(28 * 28, bsz);
+    Matrix output(10, bsz);
     for (int i = 0; i < num_iters; ++i) {
         std::cout << "Iteration " << i << std::endl;
         std::pair<Matrix, Matrix> data_and_labels = construct_batch(images, labels, bsz, i);
+
+        data_and_labels.first.getData(data);
+        printMatrixData(data, 28, 28, "for input tensor");
+
         Matrix output = mlp.forward(data_and_labels.first);
         output.getData(data);
         printMatrixData(data, 10, bsz, "for output tensor");

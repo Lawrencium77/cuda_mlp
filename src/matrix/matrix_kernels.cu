@@ -104,8 +104,8 @@ __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
     }
 }
 
-// Random numbers drawn from normal distribution
-__global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols) {
+// Random numbers drawn from uniform distribution
+__global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols, float min, float max) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -114,8 +114,8 @@ __global__ void fill_with_random(float *a, unsigned long seed, int rows, int col
         curandState_t state;
         curand_init(seed, index, 0, &state);
 
-        float rand_normal = curand_normal(&state);
-        a[index] = rand_normal;
+        float rand_uniform = curand_uniform(&state);
+        a[index] = min + rand_uniform * (max - min); // Scale to range
     }
 }
 
