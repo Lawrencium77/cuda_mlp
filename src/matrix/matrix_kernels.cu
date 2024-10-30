@@ -133,10 +133,10 @@ __global__ void softmax_bwd(float* labels, float* softmax_outputs, float* softma
 
     if (row < rows && col < cols) {
         int idx = row * cols + col;
-        int label_idx = (int)labels[col];
+        int label_idx = (int)labels[row];
 
         // https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/#derivation-of-softmax
-        if (row == label_idx) {
+        if (col == label_idx) {
             softmax_grads[idx] = softmax_outputs[idx] - 1.0f;
         } else {
             softmax_grads[idx] = softmax_outputs[idx];

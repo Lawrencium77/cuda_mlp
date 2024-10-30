@@ -216,7 +216,7 @@ void Matrix::random(unsigned long seed, float min, float max) {
 
 Matrix Matrix::get_ce_loss(Matrix& labels) {
     if (rows != labels.rows) {
-        std::cerr << "Non-matching number of columns for input and labels" << std::endl;
+        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
         exit(1);
     }
 
@@ -230,21 +230,26 @@ Matrix Matrix::get_ce_loss(Matrix& labels) {
     return losses;
 };
 
-//  label => (1, bsz) => represents the index of the correct output
-//  softmax_output => (feats, bsz)
-Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output) {
-    int feats = softmax_output.getRows();
-    int bsz = softmax_output.getCols();
+//  labels => (bsz, 1) => represents the index of the correct output
+//  softmax_output => (bsz, feats)
+Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
+    int bsz = softmax_output.getRows();
+    int feats = softmax_output.getCols();
 
-    Matrix softmax_grads = Matrix(feats, bsz);
+    if (labels.getRows() != bsz) {
+        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
+        exit(1);
+    }
+
+    Matrix softmax_grads = Matrix(bsz, feats);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (bsz + blockSize.x - 1) / blockSize.x,
-        (feats + blockSize.y - 1) / blockSize.y
+        (feats + blockSize.x - 1) / blockSize.x,
+        (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(label.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), feats, bsz);
+    softmax_bwd<<<gridSize, blockSize>>>(labels.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), bsz, feats);
     cudaDeviceSynchronize();
     return softmax_grads;
 }

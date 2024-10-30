@@ -80,15 +80,14 @@ void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
     printMatrixData(data, 1, bsz);
 }
 
-void testCESoftmaxBwd(int bsz, int feats) {
-    Matrix labels(1, feats);
-    Matrix softmax_out(bsz, feats);
+void testCESoftmaxBwd(Matrix& softmax_out, int bsz, int feats) {
+    Matrix labels(bsz, 1);
 
-    softmax_out.random(0, -1.0f, 1.0f);
-    float* labels_data = new float[feats];
-    for (int i = 0; i < feats; i++){
+    float* labels_data = new float[bsz];
+    for (int i = 0; i < bsz; i++){
         labels_data[i] = 0;
     }
+    labels.setData(labels_data);
 
     Matrix output = ce_softmax_bwd(labels, softmax_out);
     
@@ -142,7 +141,7 @@ void runTests() {
     testCrossEntropy(normalised_values, feats, bsz);
 
     std::cout << "Testing CE + Softmax Bwd" << std::endl;
-    testCESoftmaxBwd(bsz, feats);
+    testCESoftmaxBwd(normalised_values, bsz, feats);
 
     delete [] data;
 }
