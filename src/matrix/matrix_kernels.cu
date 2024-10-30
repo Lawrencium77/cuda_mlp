@@ -76,20 +76,19 @@ __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int co
     }
 }
 
-// rows_a = len(labels)
 __global__ void matrix_softmax(float *a, float* b, int rows, int cols) {
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = threadIdx.y;
 
-    if (col < cols) {
-        float col_sum = 0.0f;
-        for (int row = 0; row < rows; row++) {
-            float exp_value = expf(a[col * rows + row]);
-            b[col * rows + row] = exp_value;
-            col_sum += exp_value;
+    if (row < rows) {
+        float row_sum = 0.0f;
+        for (int col = 0; col < cols; col++) {
+            float exp_value = expf(a[row * cols + col]);
+            b[row * cols + col] = exp_value;
+            row_sum += exp_value;
         }
 
-        for (int row = 0; row < rows; row++) {
-            b[col * rows + row] /= col_sum;
+        for (int col = 0; col < cols; col++) {
+            b[row * cols + col] /= row_sum;
         }
     }
 }

@@ -95,7 +95,7 @@ Matrix testRandom(int bsz, int feats) {
 
     float* data = new float[bsz * feats];
     matrix.getData(data);
-    // printMatrixData(data, bsz, feats);
+    printMatrixData(data, bsz, feats);
 
     return matrix;
 }

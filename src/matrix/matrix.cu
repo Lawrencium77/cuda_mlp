@@ -174,16 +174,18 @@ Matrix Matrix::matmul(const Matrix& other) {
 };
 
 Matrix Matrix::softmax() {
-    if (cols > 256){
-        std::cerr << "Softmax kernel doesn't support matrix width > 256" << std::endl;
+    int MAX_ROWS = 1024;
+    if (cols > MAX_ROWS){
+        std::cerr << "Softmax kernel doesn't support rows > " << MAX_ROWS << std::endl;
         exit(1);
     }
     Matrix result(rows, cols);
 
-    dim3 blockSize(1, 256);
-    dim3 gridSize(cols, 1);
+    dim3 blockSize(1, MAX_ROWS);
+    dim3 gridSize(1, 1);
 
-    matrix_softmax<<<blockSize, gridSize>>>(data, result.data, rows, cols);
+    std::cout << rows << ',' << cols << std::endl;
+    matrix_softmax<<<gridSize, blockSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
 };
