@@ -91,7 +91,7 @@ void testSigmoid(float* data, int rows, int cols) {
 
 Matrix testRandom(int rows, int cols) {
     Matrix matrix(rows, cols);
-    matrix.random(0);
+    matrix.random(0, -1.0f, 1.0f);
 
     float* data = new float[rows * cols];
     matrix.getData(data);
@@ -121,7 +121,7 @@ void testCESoftmaxBwd(int rows, int cols) {
     Matrix labels(1, cols);
     Matrix softmax_out(rows, cols);
 
-    softmax_out.random(0);
+    softmax_out.random(0, -1.0f, 1.0f);
     float* labels_data = new float[cols];
     for (int i = 0; i < cols; i++){
         labels_data[i] = 0;

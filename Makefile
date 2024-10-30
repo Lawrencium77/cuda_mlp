@@ -10,14 +10,14 @@ BUILD_DIR = build
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
 MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
 MODEL_SRC_FILES = $(SRC_DIR)/network/model.cpp
-TRAINING_SRC_FILES = $(SRC_DIR)/train/run_fwd.cpp
+TRAINING_SRC_FILES = $(SRC_DIR)/train/train.cpp
 
 MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
 MODEL_TEST_FILE = $(TEST_DIR)/test_model.cpp
 
 MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
 MODEL_OUTPUT = $(BUILD_DIR)/test_model
-TRAINING_OUTPUT = $(BUILD_DIR)/run_fwd
+TRAINING_OUTPUT = $(BUILD_DIR)/train
 
 all: $(MATRIX_OUTPUT) $(DATA_OUTPUT) $(MODEL_OUTPUT) $(TRAINING_OUTPUT)
 

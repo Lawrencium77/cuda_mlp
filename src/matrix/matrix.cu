@@ -202,14 +202,14 @@ Matrix Matrix::sigmoid() {
     return result;
 };
 
-void Matrix::random(unsigned long seed) {
+void Matrix::random(unsigned long seed, float min, float max) {
     dim3 blockSize(16, 16);
     dim3 gridSize(
         (cols + blockSize.x - 1) / blockSize.x,
         (rows + blockSize.y - 1) / blockSize.y
     );
 
-    fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols);
+    fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols, min, max);
     cudaDeviceSynchronize();
 };
 

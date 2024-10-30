@@ -1,4 +1,5 @@
 #include "model.h"
+#include <math.h>
 
 SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid)
     : dim_out(dim_out),
@@ -8,7 +9,9 @@ SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool sigmo
       sigmoid(sigmoid) {}
 
 void SingleLayerPerceptron::randomise(unsigned long seed) {
-  weights.random(seed);
+  float max = 1.0f / sqrt(dim_in); // Xavier initialisation
+  float min = -max;
+  weights.random(seed, min, max);
 }
 
 Matrix SingleLayerPerceptron::forward(Matrix& input) {
