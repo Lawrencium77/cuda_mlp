@@ -44,8 +44,8 @@ Matrix Matrix::operator+(const float value) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_const_add<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
@@ -63,8 +63,8 @@ Matrix Matrix::operator*(const float value) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
@@ -91,8 +91,8 @@ Matrix Matrix::operator+(Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_add<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
@@ -109,8 +109,8 @@ Matrix Matrix::operator*(Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_hadamard<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
@@ -145,8 +145,8 @@ Matrix Matrix::transpose() {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,  // Ceil(cols / blockSize.x)
-        (rows + blockSize.y - 1) / blockSize.y   // Ceil(rows / blockSize.y)
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y   
     );
 
     matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
@@ -164,8 +164,8 @@ Matrix Matrix::matmul(const Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (other.cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (other.cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_multiply<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols, other.cols);
