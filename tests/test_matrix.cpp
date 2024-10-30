@@ -1,74 +1,53 @@
 #include "matrix.h"
 #include "test_utils.h"
 
-void testSum(float* data, int bsz, int feats) {
-    Matrix matrix(bsz, feats);
-    matrix.setData(data);
+void testPrintOp(Matrix& input1, Matrix& input2, float* data, int bsz, int feats) {
+    input1.getData(data);
+    printMatrixData(data, bsz, feats, "Input 1");
 
-    float sum = matrix.sum();
-    std::cout << "Sum: " << sum  << "\n" << std::endl;
+    input2.getData(data);
+    printMatrixData(data, bsz, feats, "Input 2");
 }
 
-void testAddConst(float* data, float value, int bsz, int feats) {
-    Matrix matrix(bsz, feats);
-    matrix.setData(data);
-
-    Matrix output = matrix + value;
-    
-    output.getData(data);
-    printMatrixData(data, bsz, feats);
+void testSum(Matrix& input1, float* data, int bsz, int feats) {
+    float sum = input1.sum();
+    std::cout << "Sum for input1: " << sum  << "\n" << std::endl;
 }
 
-void testMulConst(float* data, float value, int bsz, int feats) {
-    Matrix matrix(bsz, feats);
-    matrix.setData(data);
-
-    Matrix output = matrix * value;
-    
-    output.getData(data);
-    printMatrixData(data, bsz, feats);
-}
-
-void testAdd(float* data, int bsz, int feats) {
-    Matrix matrix1(bsz, feats);
-    Matrix matrix2(bsz, feats);
-    matrix1.setData(data);
-    matrix2.setData(data);
-
-    Matrix output = matrix1 + matrix2;
-    
-    output.getData(data);
-    printMatrixData(data, bsz, feats);
-}
-
-void testHadamard(float* data, int bsz, int feats) {
-    Matrix matrix1(bsz, feats);
-    Matrix matrix2(bsz, feats);
-    matrix1.setData(data);
-    matrix2.setData(data);
-
-    Matrix output = matrix1 * matrix2;
-    
-    output.getData(data);
-    printMatrixData(data, bsz, feats);
-}
-
-void testTranspose(Matrix& input, float* data, int bsz, int feats) {
-    Matrix output = input.transpose();
+void testTranspose(Matrix& input1, float* data, int bsz, int feats) {
+    Matrix output = input1.transpose();
     output.getData(data);
     printMatrixData(data, feats, bsz);
 }
 
-void testMul(float* data, int bsz, int feats) {
-    Matrix matrix1(bsz, feats);
-    Matrix matrix2(bsz, feats);
-    matrix1.setData(data);
-    matrix2.setData(data);
-
-    Matrix output = matrix1.matmul(matrix2);
-    
+void testAddConst(Matrix& input1, float* data, float value, int bsz, int feats) {
+    Matrix output = input1 + value;
     output.getData(data);
     printMatrixData(data, bsz, feats);
+}
+
+void testMulConst(Matrix& input1, float* data, float value, int bsz, int feats) {
+    Matrix output = input1 * value;
+    output.getData(data);
+    printMatrixData(data, bsz, feats);
+}
+
+void testAdd(Matrix& input1, Matrix& input2, float* data, int bsz, int feats) {
+    Matrix output = input1 + input2;
+    output.getData(data);
+    printMatrixData(data, bsz, feats);
+}
+
+void testHadamard(Matrix& input1, Matrix& input2, float* data, int bsz, int feats) {
+    Matrix output = input1 * input2;
+    output.getData(data);
+    printMatrixData(data, bsz, feats);
+}
+
+void testMul(Matrix& input1, Matrix& input2, float* data, int bsz) {
+    Matrix output = input1.matmul(input2.transpose());
+    output.getData(data);
+    printMatrixData(data, bsz, bsz);
 }
 
 Matrix testSoftmax(Matrix& input, float* data, int bsz, int feats) {
@@ -79,27 +58,11 @@ Matrix testSoftmax(Matrix& input, float* data, int bsz, int feats) {
     return output;
 }
 
-void testSigmoid(float* data, int bsz, int feats) {
-    Matrix matrix1(bsz, feats);
-    matrix1.setData(data);
-
-    Matrix output = matrix1.sigmoid();
-
+void testSigmoid(Matrix& input1, float* data, int bsz, int feats) {
+    Matrix output = input1.sigmoid();
     output.getData(data);
     printMatrixData(data, bsz, feats);
 }
-
-Matrix testRandom(int bsz, int feats) {
-    Matrix matrix(bsz, feats);
-    matrix.random(0, -1.0f, 1.0f);
-
-    float* data = new float[bsz * feats];
-    matrix.getData(data);
-    printMatrixData(data, bsz, feats);
-
-    return matrix;
-}
-
 
 void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
     Matrix labels(bsz, 1);
@@ -135,50 +98,47 @@ void testCESoftmaxBwd(int bsz, int feats) {
 }
 
 void runTests() {
-    int bsz = 8;
-    int feats = 8;
-    int numel = bsz * feats;
-    float value = 1.0f;
+    int bsz = 2;
+    int feats = 4;
+    float value = 2.0f;
 
-    float* data = new float[numel];
-    for (int i = 0; i < numel; i++){
-        data[i] = 1.0f;
-    }
-    
-    std::cout << "Testing Print Op" << std::endl;
-    printMatrixData(data, bsz, feats);
+    Matrix input1 = Matrix(bsz, feats);
+    Matrix input2 = Matrix(bsz, feats);
+    input1.random(0, -1.0f, 1.0f);
+    input2.random(1, -1.0f, 1.0f);
+    float* data = new float[bsz * feats];
 
-    std::cout << "Testing Sum Op" << std::endl;
-    testSum(data, bsz, feats);
+    std::cout << "Testing Print" << std::endl;
+    testPrintOp(input1, input2, data, bsz, feats);
 
-    std::cout << "Testing Add Const Op" << std::endl;
-    testAddConst(data, value, bsz, feats);
+    std::cout << "Testing Sum" << std::endl;
+    testSum(input1, data, bsz, feats);
 
-    std::cout << "Testing Mul Const Op" << std::endl;
-    testMulConst(data, value, bsz, feats);
+    std::cout << "Testing Transpose" << std::endl;
+    testTranspose(input1, data, bsz, feats);
 
-    std::cout << "Testing Add Op" << std::endl;
-    testAdd(data, bsz, feats);
+    std::cout << "Testing Add Const" << std::endl;
+    testAddConst(input1, data, value, bsz, feats);
 
-    std::cout << "Testing Hadamard Op" << std::endl;
-    testHadamard(data, bsz, feats);
+    std::cout << "Testing Mul Const" << std::endl;
+    testMulConst(input1, data, value, bsz, feats);
 
-    std::cout << "Testing Mul Op" << std::endl;
-    testMul(data, bsz, feats);
+    std::cout << "Testing Element-Wise Add" << std::endl;
+    testAdd(input1, input2, data, bsz, feats);
 
-    std::cout << "Testing Sigmoid Op" << std::endl;
-    testSigmoid(data, bsz, feats);
+    std::cout << "Testing Hadamard" << std::endl;
+    testHadamard(input1, input2, data, bsz, feats);
 
-    std::cout << "Testing Random Init Op" << std::endl;
-    Matrix random_values = testRandom(bsz, feats);
+    std::cout << "Testing Mul" << std::endl;
+    testMul(input1, input2, data, bsz);
 
-    std::cout << "Testing Transpose Op" << std::endl;
-    testTranspose(random_values, data, bsz, feats);
+    std::cout << "Testing Sigmoid" << std::endl;
+    testSigmoid(input1, data, bsz, feats);
 
-    std::cout << "Testing Softmax Op" << std::endl;
-    Matrix normalised_values = testSoftmax(random_values, data, bsz, feats);
+    std::cout << "Testing Softmax" << std::endl;
+    Matrix normalised_values = testSoftmax(input1, data, bsz, feats);
 
-    std::cout << "Testing Cross Entropy Op" << std::endl;
+    std::cout << "Testing Cross Entropy" << std::endl;
     testCrossEntropy(normalised_values, feats, bsz);
 
     std::cout << "Testing CE + Softmax Bwd" << std::endl;
