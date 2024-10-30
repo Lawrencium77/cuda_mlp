@@ -4,8 +4,8 @@
 SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid)
     : dim_out(dim_out),
       dim_in(dim_in),
-      weights(dim_out, dim_in),
-      grads(dim_out, dim_in),
+      weights(dim_in, dim_out),
+      grads(dim_in, dim_out),
       sigmoid(sigmoid) {}
 
 void SingleLayerPerceptron::randomise(unsigned long seed) {
@@ -15,11 +15,11 @@ void SingleLayerPerceptron::randomise(unsigned long seed) {
 }
 
 Matrix SingleLayerPerceptron::forward(Matrix& input) {
-  // weights: dim_out x dim_in
-  // input: dim_in x bsz
-  // output: dim_out x bsz
+  // weights: dim_in x dim_out
+  // input: bsz x dim_in
+  // output: bsz x dim_out
   inputs = input; // Store for backward pass
-  Matrix intermediate = weights.matmul(input); 
+  Matrix intermediate = input.matmul(weights); 
   return sigmoid ? intermediate.sigmoid() : intermediate;
 }
 

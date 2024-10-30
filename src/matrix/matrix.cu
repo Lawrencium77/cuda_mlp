@@ -146,7 +146,7 @@ Matrix Matrix::transpose() {
     dim3 blockSize(16, 16);
     dim3 gridSize(
         (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y   
+        (rows + blockSize.y - 1) / blockSize.y
     );
 
     matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
@@ -184,7 +184,6 @@ Matrix Matrix::softmax() {
     dim3 blockSize(1, MAX_ROWS);
     dim3 gridSize(1, 1);
 
-    std::cout << rows << ',' << cols << std::endl;
     matrix_softmax<<<gridSize, blockSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
