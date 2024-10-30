@@ -102,7 +102,7 @@ Matrix testRandom(int bsz, int feats) {
 
 
 void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
-    Matrix labels(1, bsz);
+    Matrix labels(bsz, 1);
 
     float* labels_data = new float[bsz];
     for (int i = 0; i < bsz; i++){
@@ -179,7 +179,7 @@ void runTests() {
     Matrix normalised_values = testSoftmax(random_values, data, bsz, feats);
 
     std::cout << "Testing Cross Entropy Op" << std::endl;
-    testCrossEntropy(normalised_values, bsz, feats);
+    testCrossEntropy(normalised_values, feats, bsz);
 
     std::cout << "Testing CE + Softmax Bwd" << std::endl;
     testCESoftmaxBwd(bsz, feats);

@@ -216,15 +216,15 @@ void Matrix::random(unsigned long seed, float min, float max) {
 };
 
 Matrix Matrix::get_ce_loss(Matrix& labels) {
-    if (cols != labels.cols) {
+    if (rows != labels.rows) {
         std::cerr << "Non-matching number of columns for input and labels" << std::endl;
         exit(1);
     }
 
-    Matrix losses = Matrix(1, cols);
+    Matrix losses = Matrix(rows, 1);
 
-    dim3 blockSize(1, 32);
-    dim3 gridSize(1, cols / blockSize.y + 1);
+    dim3 blockSize(1, 1024);
+    dim3 gridSize(1, 1);
 
     ce_loss<<<gridSize, blockSize>>>(data, labels.data, losses.data, rows, cols);
     cudaDeviceSynchronize();

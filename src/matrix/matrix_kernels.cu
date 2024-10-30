@@ -119,11 +119,11 @@ __global__ void fill_with_random(float *a, unsigned long seed, int rows, int col
 }
 
 __global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols) {
-    int col = blockIdx.y * blockDim.y + threadIdx.y; // Row = 0
+    int row = threadIdx.y;
 
-    if (col < cols) {
-        int label = (int)labels[col];
-        losses[col] = -1 * logf(preds[label * cols + col]);
+    if (row < rows) {
+        int label = (int)labels[row];
+        losses[row] = -1 * logf(preds[row * cols + label]);
     }
 }
 
