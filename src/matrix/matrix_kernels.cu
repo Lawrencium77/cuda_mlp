@@ -111,6 +111,26 @@ __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
     }
 }
 
+__global__ void matrix_relu(float *a, float* b, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        b[index] = fmaxf(0.0f, a[index]);
+    }
+}
+
+__global__ void matrix_relu_backward(float *a, float *grad_output, float *grad_input, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        grad_input[index] = a[index] > 0 ? grad_output[index] : 0.0f;
+    }
+}
+
 // Random numbers drawn from uniform distribution
 __global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols, float min, float max) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;

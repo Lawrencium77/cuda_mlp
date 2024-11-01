@@ -1,12 +1,12 @@
 #include "model.h"
 #include <math.h>
 
-SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid)
+SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool use_activation)
     : dim_out(dim_out),
       dim_in(dim_in),
       weights(dim_in, dim_out),
       grads(dim_in, dim_out),
-      sigmoid(sigmoid) {}
+      use_activation(use_activation) {}
 
 void SingleLayerPerceptron::randomise(unsigned long seed) {
   float max = 1.0f / sqrt(dim_in); // Xavier initialisation
@@ -20,7 +20,7 @@ Matrix SingleLayerPerceptron::forward(Matrix& input) {
   // output: bsz x dim_out
   inputs = input; // Store for backward pass
   Matrix Z = input.matmul(weights);
-  activations = sigmoid ? Z.sigmoid() : Z;
+  activations = use_activation ? Z.relu() : Z;
   return activations;
 }
 
@@ -33,10 +33,9 @@ Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   Matrix weights_tranpose = weights.transpose(); 
   Matrix delta;
   
-  if (sigmoid) {
-    Matrix sigmoid_one_minus = (1.0f - activations); 
-    Matrix sigmoid_grad = activations * sigmoid_one_minus; 
-    delta = grad * sigmoid_grad; // (bsz x dim_out) 
+  if (use_activation) {
+      Matrix relu_grad = activations.relu_backward(grad);
+      delta = relu_grad;
   } else {
     delta = grad;
   }

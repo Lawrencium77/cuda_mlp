@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     MLP mlp(feat_dim, num_layers);
     mlp.randomise(0);
 
-    train_loop(mlp, train_images, train_labels, 1600, 8, 0.001);
+    train_loop(mlp, train_images, train_labels, 1600, 8, 0.01);
 
     return 0;
 }

@@ -8,9 +8,9 @@ struct SingleLayerPerceptron {
     Matrix grads;
     Matrix inputs;
     Matrix activations;
-    bool sigmoid;
+    bool use_activation;
 
-    SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid = true);
+    SingleLayerPerceptron(int dim_out, int dim_in, bool use_activation = true);
     Matrix forward(Matrix& input);
     Matrix backward(Matrix& grad);
     void update_weights(float lr);

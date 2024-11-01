@@ -203,6 +203,35 @@ Matrix Matrix::sigmoid() {
     return result;
 };
 
+Matrix Matrix::relu() {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_relu<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix Matrix::relu_backward(Matrix& grad_output) {
+    Matrix grad_input(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_relu_backward<<<gridSize, blockSize>>>(data, grad_output.data, grad_input.data, rows, cols);
+    cudaDeviceSynchronize();
+    return grad_input;
+}
+
+
 void Matrix::random(unsigned long seed, float min, float max) {
     dim3 blockSize(16, 16);
     dim3 gridSize(
