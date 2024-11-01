@@ -39,6 +39,8 @@ class Matrix {
       Matrix matmul(const Matrix& other);
       Matrix softmax();
       Matrix sigmoid();
+      Matrix relu();
+      Matrix relu_backward(Matrix& grad_output);
       Matrix get_ce_loss(Matrix& labels);
       void random(unsigned long seed, float min, float max);
 

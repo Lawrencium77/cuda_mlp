@@ -76,20 +76,27 @@ __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int co
     }
 }
 
-// rows_a = len(labels)
-__global__ void matrix_softmax(float *a, float* b, int rows, int cols) {
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void matrix_softmax_over_rows(float *a, float* b, int rows, int cols) {
+    int row = threadIdx.y;
 
-    if (col < cols) {
-        float col_sum = 0.0f;
-        for (int row = 0; row < rows; row++) {
-            float exp_value = expf(a[col * rows + row]);
-            b[col * rows + row] = exp_value;
-            col_sum += exp_value;
+    if (row < rows) {
+        float row_max = a[row * cols];
+        for (int col = 1; col < cols; col++) {
+            float val = a[row * cols + col];
+            if (val > row_max) {
+                row_max = val;
+            }
         }
 
-        for (int row = 0; row < rows; row++) {
-            b[col * rows + row] /= col_sum;
+        float row_sum = 0.0f;
+        for (int col = 0; col < cols; col++) {
+            float exp_value = expf(a[row * cols + col] - row_max); // subtract max for stability
+            b[row * cols + col] = exp_value;
+            row_sum += exp_value;
+        }
+
+        for (int col = 0; col < cols; col++) {
+            b[row * cols + col] /= row_sum;
         }
     }
 }
@@ -101,6 +108,26 @@ __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
     if (row < rows && col < cols) {
         int index = row * cols + col;
         b[index] = 1 / (1 + expf(-1 * a[index]));
+    }
+}
+
+__global__ void matrix_relu(float *a, float* b, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        b[index] = fmaxf(0.0f, a[index]);
+    }
+}
+
+__global__ void matrix_relu_backward(float *a, float *grad_output, float *grad_input, int rows, int cols) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < rows && col < cols) {
+        int index = row * cols + col;
+        grad_input[index] = a[index] > 0 ? grad_output[index] : 0.0f;
     }
 }
 
@@ -119,12 +146,13 @@ __global__ void fill_with_random(float *a, unsigned long seed, int rows, int col
     }
 }
 
-__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols) {
-    int col = blockIdx.y * blockDim.y + threadIdx.y; // Row = 0
+__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols, const float epsilon) {
+    int row = threadIdx.y;
 
-    if (col < cols) {
-        int label = (int)labels[col];
-        losses[col] = -1 * logf(preds[label * cols + col]);
+    if (row < rows) {
+        int label = (int)labels[row];
+        float pred = preds[row * cols + label];
+        losses[row] = -1 * logf(pred + epsilon);
     }
 }
 
@@ -134,10 +162,10 @@ __global__ void softmax_bwd(float* labels, float* softmax_outputs, float* softma
 
     if (row < rows && col < cols) {
         int idx = row * cols + col;
-        int label_idx = (int)labels[col];
+        int label_idx = (int)labels[row];
 
         // https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/#derivation-of-softmax
-        if (row == label_idx) {
+        if (col == label_idx) {
             softmax_grads[idx] = softmax_outputs[idx] - 1.0f;
         } else {
             softmax_grads[idx] = softmax_outputs[idx];

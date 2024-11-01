@@ -44,8 +44,8 @@ Matrix Matrix::operator+(const float value) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_const_add<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
@@ -63,8 +63,8 @@ Matrix Matrix::operator*(const float value) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
@@ -91,8 +91,8 @@ Matrix Matrix::operator+(Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_add<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
@@ -109,8 +109,8 @@ Matrix Matrix::operator*(Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_hadamard<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
@@ -145,8 +145,8 @@ Matrix Matrix::transpose() {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,  // Ceil(cols / blockSize.x)
-        (rows + blockSize.y - 1) / blockSize.y   // Ceil(rows / blockSize.y)
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
     );
 
     matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
@@ -164,8 +164,8 @@ Matrix Matrix::matmul(const Matrix& other) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (other.cols - 1) / blockSize.x + 1, // Ceil(cols / blockSize.x)
-        (rows - 1) / blockSize.y + 1 // Ceil(rows / blockSize.y)
+        (other.cols - 1) / blockSize.x + 1,
+        (rows - 1) / blockSize.y + 1
     );
 
     matrix_multiply<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols, other.cols);
@@ -174,16 +174,17 @@ Matrix Matrix::matmul(const Matrix& other) {
 };
 
 Matrix Matrix::softmax() {
-    if (cols > 256){
-        std::cerr << "Softmax kernel doesn't support matrix width > 256" << std::endl;
+    int MAX_COLS = 1024;
+    if (cols > MAX_COLS){
+        std::cerr << "Softmax kernel doesn't support cols > " << MAX_COLS << std::endl;
         exit(1);
     }
     Matrix result(rows, cols);
 
-    dim3 blockSize(1, 256);
-    dim3 gridSize(cols, 1);
+    dim3 blockSize(1, MAX_COLS);
+    dim3 gridSize(1, 1);
 
-    matrix_softmax<<<blockSize, gridSize>>>(data, result.data, rows, cols);
+    matrix_softmax_over_rows<<<gridSize, blockSize>>>(data, result.data, rows, cols);
     cudaDeviceSynchronize();
     return result;
 };
@@ -202,6 +203,35 @@ Matrix Matrix::sigmoid() {
     return result;
 };
 
+Matrix Matrix::relu() {
+    Matrix result(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_relu<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix Matrix::relu_backward(Matrix& grad_output) {
+    Matrix grad_input(rows, cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (cols + blockSize.x - 1) / blockSize.x,
+        (rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_relu_backward<<<gridSize, blockSize>>>(data, grad_output.data, grad_input.data, rows, cols);
+    cudaDeviceSynchronize();
+    return grad_input;
+}
+
+
 void Matrix::random(unsigned long seed, float min, float max) {
     dim3 blockSize(16, 16);
     dim3 gridSize(
@@ -214,36 +244,41 @@ void Matrix::random(unsigned long seed, float min, float max) {
 };
 
 Matrix Matrix::get_ce_loss(Matrix& labels) {
-    if (cols != labels.cols) {
-        std::cerr << "Non-matching number of columns for input and labels" << std::endl;
+    if (rows != labels.rows) {
+        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
         exit(1);
     }
 
-    Matrix losses = Matrix(1, cols);
+    Matrix losses = Matrix(rows, 1);
 
-    dim3 blockSize(1, 32);
-    dim3 gridSize(1, cols / blockSize.y + 1);
+    dim3 blockSize(1, 1024);
+    dim3 gridSize(1, 1);
 
     ce_loss<<<gridSize, blockSize>>>(data, labels.data, losses.data, rows, cols);
     cudaDeviceSynchronize();
     return losses;
 };
 
-//  label => (1, bsz) => represents the index of the correct output
-//  softmax_output => (feats, bsz)
-Matrix ce_softmax_bwd(Matrix& label, Matrix& softmax_output) {
-    int feats = softmax_output.getRows();
-    int bsz = softmax_output.getCols();
+//  labels => (bsz, 1) => represents the index of the correct output
+//  softmax_output => (bsz, num_classes)
+Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
+    int bsz = softmax_output.getRows();
+    int num_classes = softmax_output.getCols();
 
-    Matrix softmax_grads = Matrix(feats, bsz);
+    if (labels.getRows() != bsz) {
+        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
+        exit(1);
+    }
+
+    Matrix softmax_grads = Matrix(bsz, num_classes);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (bsz + blockSize.x - 1) / blockSize.x,
-        (feats + blockSize.y - 1) / blockSize.y
+        (num_classes + blockSize.x - 1) / blockSize.x,
+        (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(label.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), feats, bsz);
+    softmax_bwd<<<gridSize, blockSize>>>(labels.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), bsz, num_classes);
     cudaDeviceSynchronize();
     return softmax_grads;
 }

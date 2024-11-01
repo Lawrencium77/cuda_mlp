@@ -1,12 +1,12 @@
 #include "model.h"
 #include <math.h>
 
-SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid)
+SingleLayerPerceptron::SingleLayerPerceptron(int dim_out, int dim_in, bool use_activation)
     : dim_out(dim_out),
       dim_in(dim_in),
-      weights(dim_out, dim_in),
-      grads(dim_out, dim_in),
-      sigmoid(sigmoid) {}
+      weights(dim_in, dim_out),
+      grads(dim_in, dim_out),
+      use_activation(use_activation) {}
 
 void SingleLayerPerceptron::randomise(unsigned long seed) {
   float max = 1.0f / sqrt(dim_in); // Xavier initialisation
@@ -15,33 +15,34 @@ void SingleLayerPerceptron::randomise(unsigned long seed) {
 }
 
 Matrix SingleLayerPerceptron::forward(Matrix& input) {
-  // weights: dim_out x dim_in
-  // input: dim_in x bsz
-  // output: dim_out x bsz
+  // weights: dim_in x dim_out
+  // input: bsz x dim_in
+  // output: bsz x dim_out
   inputs = input; // Store for backward pass
-  Matrix intermediate = weights.matmul(input); 
-  return sigmoid ? intermediate.sigmoid() : intermediate;
+  Matrix Z = input.matmul(weights);
+  activations = use_activation ? Z.relu() : Z;
+  return activations;
 }
 
 Matrix SingleLayerPerceptron::backward(Matrix& grad) {
-  // weights: dim_out x dim_in
-  // grad: dim_out x bsz
-  // output: dim_in x bsz
-  if (sigmoid) {
-    Matrix intermediate = weights.matmul(inputs).sigmoid();
-    Matrix sigmoid_one_minus = (1.0f - intermediate); // TODO: Use M * (1.0f - M)
-    Matrix sigmoid_grad = intermediate * sigmoid_one_minus;
-    Matrix delta = grad * sigmoid_grad; 
-    
-    grads = delta.matmul(inputs.transpose());
-    Matrix input_grads = weights.transpose().matmul(delta);
-    return input_grads;
+  // weights: dim_in x dim_out
+  // grad: bsz x dim_out
+  // input_grads: bsz x dim_in
+  // weight_grads: dim_in x dim_out
+  Matrix inputs_tranpose = inputs.transpose(); 
+  Matrix weights_tranpose = weights.transpose(); 
+  Matrix delta;
+  
+  if (use_activation) {
+      Matrix relu_grad = activations.relu_backward(grad);
+      delta = relu_grad;
   } else {
-    Matrix delta = grad;
-    grads = delta.matmul(inputs.transpose());
-    Matrix input_grads = weights.transpose().matmul(delta);
-    return input_grads;
+    delta = grad;
   }
+  
+  grads = inputs_tranpose.matmul(delta); 
+  Matrix input_grads = delta.matmul(weights_tranpose); 
+  return input_grads;
 }
 
 void SingleLayerPerceptron::update_weights(float lr) {

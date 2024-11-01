@@ -1,23 +1,23 @@
 #include "test_utils.h"
 #include "model.h"
 
-void testSingleLayerForward(float* data, Matrix& input, int feat_dim, int bsz) {
+void testSingleLayerForward(float* data, Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
   Matrix output = slp.forward(input);
   
   output.getData(data);
-  printMatrixData(data, feat_dim, bsz);
+  printMatrixData(data, bsz, feat_dim);
 }
 
-void testSingleLayerBackward(float* data, Matrix& input, int feat_dim, int bsz) {
+void testSingleLayerBackward(float* data, Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
   Matrix output = slp.forward(input);
-  Matrix grad = slp.backward(input);
+  Matrix grad = slp.backward(output);
   
   grad.getData(data);
-  printMatrixData(data, feat_dim, bsz);
+  printMatrixData(data, bsz, feat_dim);
 }
 
 Matrix getLabels(int bsz) {
@@ -25,18 +25,18 @@ Matrix getLabels(int bsz) {
   for (int i = 0; i < bsz; i++){
       labels_data[i] = 0;
   }
-  Matrix labels(1, bsz);
+  Matrix labels(bsz, 1);
   labels.setData(labels_data);
   return labels;
 }
 
-void testMLPForward(float* data, Matrix& input, int feat_dim, int num_layers, int num_classes, int bsz) {
+void testMLPForward(float* data, Matrix& input, int bsz, int feat_dim, int num_layers, int num_classes) {
   MLP mlp(feat_dim, num_layers);
   mlp.randomise(0);
   Matrix output = mlp.forward(input);
   
   output.getData(data);
-  printMatrixData(data, num_classes, bsz);
+  printMatrixData(data, bsz, num_classes);
 
   Matrix labels = getLabels(bsz);
 
@@ -85,15 +85,17 @@ void runTests() {
   float* input_data = new float[input_numel];
   setHostDataToConst(input_data, input_numel, 1.0f);
 
-  Matrix input = Matrix(feat_dim, bsz);
+  std::cout << "Testing Single Layer" << std::endl;
+  Matrix input = Matrix(bsz, feat_dim);
   input.setData(input_data);
-  testSingleLayerForward(input_data, input, feat_dim, bsz);
-  testSingleLayerBackward(input_data, input, feat_dim, bsz);
+  testSingleLayerForward(input_data, input, bsz, feat_dim);
+  testSingleLayerBackward(input_data, input, bsz, feat_dim);
 
+  std::cout << "Testing MLP" << std::endl;
   int num_layers = 4;
   float* output_data = new float[output_numel];
   setHostDataToConst(input_data, input_numel, 1.0f);
-  testMLPForward(output_data, input, feat_dim, num_layers, num_classes, bsz);
+  testMLPForward(output_data, input, bsz, feat_dim, num_layers, num_classes);
 
   testMLPBackward(input, feat_dim, num_layers, num_classes, bsz);
 
