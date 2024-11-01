@@ -231,17 +231,17 @@ Matrix Matrix::get_ce_loss(Matrix& labels) {
 };
 
 //  labels => (bsz, 1) => represents the index of the correct output
-//  softmax_output => (bsz, feats)
+//  softmax_output => (bsz, num_classes)
 Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
     int bsz = softmax_output.getRows();
-    int feats = softmax_output.getCols();
+    int num_classes = softmax_output.getCols();
 
     if (labels.getRows() != bsz) {
         std::cerr << "Non-matching number of rows for input and labels" << std::endl;
         exit(1);
     }
 
-    Matrix softmax_grads = Matrix(bsz, feats);
+    Matrix softmax_grads = Matrix(bsz, num_classes);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
