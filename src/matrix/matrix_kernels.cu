@@ -126,12 +126,13 @@ __global__ void fill_with_random(float *a, unsigned long seed, int rows, int col
     }
 }
 
-__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols) {
+__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols, const float epsilon) {
     int row = threadIdx.y;
 
     if (row < rows) {
         int label = (int)labels[row];
-        losses[row] = -1 * logf(preds[row * cols + label]);
+        float pred = preds[row * cols + label];
+        losses[row] = -1 * logf(pred + epsilon);
     }
 }
 
