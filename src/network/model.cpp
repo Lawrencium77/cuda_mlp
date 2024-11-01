@@ -19,8 +19,9 @@ Matrix SingleLayerPerceptron::forward(Matrix& input) {
   // input: bsz x dim_in
   // output: bsz x dim_out
   inputs = input; // Store for backward pass
-  Matrix intermediate = input.matmul(weights); 
-  return sigmoid ? intermediate.sigmoid() : intermediate;
+  Matrix Z = input.matmul(weights);
+  activations = sigmoid ? Z.sigmoid() : Z;
+  return activations;
 }
 
 Matrix SingleLayerPerceptron::backward(Matrix& grad) {
@@ -30,13 +31,11 @@ Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   // weight_grads: dim_in x dim_out
   Matrix inputs_tranpose = inputs.transpose(); 
   Matrix weights_tranpose = weights.transpose(); 
-  
   Matrix delta;
   
   if (sigmoid) {
-    Matrix Y = inputs.matmul(weights).sigmoid(); 
-    Matrix sigmoid_one_minus = (1.0f - Y); 
-    Matrix sigmoid_grad = Y * sigmoid_one_minus; 
+    Matrix sigmoid_one_minus = (1.0f - activations); 
+    Matrix sigmoid_grad = activations * sigmoid_one_minus; 
     delta = grad * sigmoid_grad; // (bsz x dim_out) 
   } else {
     delta = grad;

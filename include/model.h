@@ -7,6 +7,7 @@ struct SingleLayerPerceptron {
     Matrix weights;
     Matrix grads;
     Matrix inputs;
+    Matrix activations;
     bool sigmoid;
 
     SingleLayerPerceptron(int dim_out, int dim_in, bool sigmoid = true);
