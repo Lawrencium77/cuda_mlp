@@ -80,9 +80,17 @@ __global__ void matrix_softmax_over_rows(float *a, float* b, int rows, int cols)
     int row = threadIdx.y;
 
     if (row < rows) {
+        float row_max = a[row * cols];
+        for (int col = 1; col < cols; col++) {
+            float val = a[row * cols + col];
+            if (val > row_max) {
+                row_max = val;
+            }
+        }
+
         float row_sum = 0.0f;
         for (int col = 0; col < cols; col++) {
-            float exp_value = expf(a[row * cols + col]);
+            float exp_value = expf(a[row * cols + col] - row_max); // subtract max for stability
             b[row * cols + col] = exp_value;
             row_sum += exp_value;
         }
