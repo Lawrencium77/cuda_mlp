@@ -76,7 +76,7 @@ __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int co
     }
 }
 
-__global__ void matrix_softmax(float *a, float* b, int rows, int cols) {
+__global__ void matrix_softmax_over_rows(float *a, float* b, int rows, int cols) {
     int row = threadIdx.y;
 
     if (row < rows) {
