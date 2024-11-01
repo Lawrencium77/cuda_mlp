@@ -24,24 +24,27 @@ Matrix SingleLayerPerceptron::forward(Matrix& input) {
 }
 
 Matrix SingleLayerPerceptron::backward(Matrix& grad) {
-  // weights: dim_out x dim_in
-  // grad: dim_out x bsz
-  // output: dim_in x bsz
+  // weights: dim_in x dim_out
+  // grad: bsz x dim_out
+  // input_grads: bsz x dim_in
+  // weight_grads: dim_in x dim_out
+  Matrix inputs_tranpose = inputs.transpose(); 
+  Matrix weights_tranpose = weights.transpose(); 
+  
+  Matrix delta;
+  
   if (sigmoid) {
-    Matrix intermediate = weights.matmul(inputs).sigmoid();
-    Matrix sigmoid_one_minus = (1.0f - intermediate); // TODO: Use M * (1.0f - M)
-    Matrix sigmoid_grad = intermediate * sigmoid_one_minus;
-    Matrix delta = grad * sigmoid_grad; 
-    
-    grads = delta.matmul(inputs.transpose());
-    Matrix input_grads = weights.transpose().matmul(delta);
-    return input_grads;
+    Matrix Y = inputs.matmul(weights).sigmoid(); 
+    Matrix sigmoid_one_minus = (1.0f - Y); 
+    Matrix sigmoid_grad = Y * sigmoid_one_minus; 
+    delta = grad * sigmoid_grad; // (bsz x dim_out) 
   } else {
-    Matrix delta = grad;
-    grads = delta.matmul(inputs.transpose());
-    Matrix input_grads = weights.transpose().matmul(delta);
-    return input_grads;
+    delta = grad;
   }
+  
+  grads = inputs_tranpose.matmul(delta); 
+  Matrix input_grads = delta.matmul(weights_tranpose); 
+  return input_grads;
 }
 
 void SingleLayerPerceptron::update_weights(float lr) {

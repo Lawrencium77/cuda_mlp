@@ -10,14 +10,14 @@ void testSingleLayerForward(float* data, Matrix& input, int bsz, int feat_dim) {
   printMatrixData(data, bsz, feat_dim);
 }
 
-void testSingleLayerBackward(float* data, Matrix& input, int feat_dim, int bsz) {
+void testSingleLayerBackward(float* data, Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
   Matrix output = slp.forward(input);
-  Matrix grad = slp.backward(input);
+  Matrix grad = slp.backward(output);
   
   grad.getData(data);
-  printMatrixData(data, feat_dim, bsz);
+  printMatrixData(data, bsz, feat_dim);
 }
 
 Matrix getLabels(int bsz) {
@@ -89,7 +89,7 @@ void runTests() {
   Matrix input = Matrix(bsz, feat_dim);
   input.setData(input_data);
   testSingleLayerForward(input_data, input, bsz, feat_dim);
-  // testSingleLayerBackward(input_data, input, bsz, feat_dim);
+  testSingleLayerBackward(input_data, input, bsz, feat_dim);
 
   std::cout << "Testing MLP" << std::endl;
   int num_layers = 4;
