@@ -11,7 +11,7 @@ std::pair<Matrix, Matrix> construct_batch(
   int offset = step * bsz;
 
   // Prepare input 
-  Matrix batch(28 * 28, bsz);
+  Matrix batch(bsz, 28 * 28);
   float* data = new float[bsz * 28 * 28];
   for (int i = 0; i < bsz; ++i) {
     for (int j = 0; j < 28 * 28; ++j) {
@@ -21,7 +21,7 @@ std::pair<Matrix, Matrix> construct_batch(
   batch.setData(data);
 
   // Prepare labels
-  Matrix labels_batch(1, bsz);
+  Matrix labels_batch(bsz, 1);
   float* labels_data = new float[bsz];
   for (int i = 0; i < bsz; ++i) {
     labels_data[i] = (float)labels[offset + i];
@@ -39,27 +39,16 @@ void train_loop(
   int bsz,
   float lr
 ){
-    float* data = new float[bsz * 28 * 28];
-    Matrix output(10, bsz);
     for (int i = 0; i < num_iters; ++i) {
-        std::cout << "Iteration " << i << std::endl;
         std::pair<Matrix, Matrix> data_and_labels = construct_batch(images, labels, bsz, i);
 
-        data_and_labels.first.getData(data);
-        printMatrixData(data, 28, 28, "for input tensor");
-
         Matrix output = mlp.forward(data_and_labels.first);
-        output.getData(data);
-        printMatrixData(data, 10, bsz, "for output tensor");
-        float loss = output.get_ce_loss(data_and_labels.second).sum();
+        float loss = output.get_ce_loss(data_and_labels.second).sum() / bsz;
 
-        data_and_labels.second.getData(data);
-        printMatrixData(data, 1, bsz, "for labels tensor");
         std::cout << "Loss: " << loss << std::endl;
         mlp.backward(data_and_labels.second, output);
         mlp.update_weights(lr);
     }
-    delete [] data;
 }
 
 int main(int argc, char* argv[]) {
@@ -85,7 +74,7 @@ int main(int argc, char* argv[]) {
     MLP mlp(feat_dim, num_layers);
     mlp.randomise(0);
 
-    train_loop(mlp, train_images, train_labels, 1, 1, 0.001);
+    train_loop(mlp, train_images, train_labels, 1600, 8, 0.001);
 
     return 0;
 }
