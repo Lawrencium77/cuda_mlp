@@ -97,7 +97,7 @@ void runTests() {
   setHostDataToConst(input_data, input_numel, 1.0f);
   testMLPForward(output_data, input, bsz, feat_dim, num_layers, num_classes);
 
-  // testMLPBackward(input, feat_dim, num_layers, num_classes, bsz);
+  testMLPBackward(input, feat_dim, num_layers, num_classes, bsz);
 
   delete [] input_data;
   delete [] output_data;

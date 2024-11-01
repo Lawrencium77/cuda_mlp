@@ -245,11 +245,11 @@ Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (feats + blockSize.x - 1) / blockSize.x,
+        (num_classes + blockSize.x - 1) / blockSize.x,
         (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(labels.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), bsz, feats);
+    softmax_bwd<<<gridSize, blockSize>>>(labels.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), bsz, num_classes);
     cudaDeviceSynchronize();
     return softmax_grads;
 }
