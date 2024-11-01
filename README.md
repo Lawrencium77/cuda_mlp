@@ -4,6 +4,7 @@ Training an MLP on MNIST in raw CUDA/C++.
 ## TODO
 
 * Logging.
+* Model checkpoint saving.
 * Consider all of the synchronisation statements. Are these slowing me down loads?
 * Could make lots of const args everwhere.
 * Surely there is a refactor required for lots of parts of the codebase.
