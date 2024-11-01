@@ -64,6 +64,12 @@ void testSigmoid(Matrix& input1, float* data, int bsz, int feats) {
     printMatrixData(data, bsz, feats);
 }
 
+void testRelu(Matrix& input1, float* data, int bsz, int feats) {
+    Matrix output = input1.relu();
+    output.getData(data);
+    printMatrixData(data, bsz, feats);
+}
+
 void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
     Matrix labels(bsz, 1);
 
@@ -133,6 +139,9 @@ void runTests() {
 
     std::cout << "Testing Sigmoid" << std::endl;
     testSigmoid(input1, data, bsz, feats);
+
+    std::cout << "Testing ReLU" << std::endl;
+    testRelu(input1, data, bsz, feats);
 
     std::cout << "Testing Softmax" << std::endl;
     Matrix normalised_values = testSoftmax(input1, data, bsz, feats);
