@@ -16,7 +16,7 @@ void Matrix::setData(const float* host_data) {
     cudaMemcpy(data, host_data, numel * sizeof(float), cudaMemcpyHostToDevice);
 }
 
-void Matrix::getData(float* host_data) {
+void Matrix::getData(float* host_data) const {
     cudaMemcpy(host_data, data, numel * sizeof(float), cudaMemcpyDeviceToHost);
 }
 
@@ -59,7 +59,6 @@ float matsum(const Matrix& mat){
     cudaFree(d_sum);
     return h_sum;
 }
-
 
 Matrix transpose(const Matrix& mat) {
     Matrix result(mat.cols, mat.rows);

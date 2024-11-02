@@ -5,12 +5,12 @@
 #include <filesystem>
 
 std::pair<Matrix, Matrix> prepare_batch(
-  std::vector<std::vector<unsigned char> >& images,
-  std::vector<unsigned char>& labels,
-  int bsz, 
-  int step
+  const std::vector<std::vector<unsigned char> >& images,
+  const std::vector<unsigned char>& labels,
+  const int bsz, 
+  const int step
 ) {
-  int offset = step * bsz;
+  const int offset = step * bsz;
 
   // Prepare input 
   Matrix batch(bsz, 28 * 28);
@@ -35,16 +35,16 @@ std::pair<Matrix, Matrix> prepare_batch(
 
 float get_val_loss(
   MLP& mlp,
-  std::vector<std::vector<unsigned char>>& val_images,
-  std::vector<unsigned char>& val_labels,
-  int bsz
+  const std::vector<std::vector<unsigned char>>& val_images,
+  const std::vector<unsigned char>& val_labels,
+  const int bsz
 ) {
-  int num_samples = val_images.size();
-  int num_batches = (num_samples + bsz - 1) / bsz;
+  const int num_samples = val_images.size();
+  const int num_batches = (num_samples + bsz - 1) / bsz;
   float total_loss = 0.0f;
 
   for (int i = 0; i < num_batches; ++i) {
-    int current_bsz = std::min(bsz, num_samples - i * bsz);
+    const int current_bsz = std::min(bsz, num_samples - i * bsz);
     std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, i);
     Matrix output = mlp.forward(data_and_labels.first);
     float loss = matsum(get_ce_loss(output, data_and_labels.second));
@@ -55,10 +55,10 @@ float get_val_loss(
 
 std::pair<std::vector<float>, std::vector<float>> train_loop(
   MLP& mlp, 
-  std::vector<std::vector<unsigned char>>& train_images,
-  std::vector<unsigned char>& train_labels,
-  std::vector<std::vector<unsigned char>>& val_images,
-  std::vector<unsigned char>& val_labels,
+  const std::vector<std::vector<unsigned char>>& train_images,
+  const std::vector<unsigned char>& train_labels,
+  const std::vector<std::vector<unsigned char>>& val_images,
+  const std::vector<unsigned char>& val_labels,
   const int num_iters,
   const int bsz,
   const float lr,
@@ -88,7 +88,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
     return std::make_pair(train_losses, val_losses);
 }
 
-void save_losses(std::vector<float>& losses, std::string filename) {
+void save_losses(const std::vector<float>& losses, const std::string filename) {
     std::ofstream loss_file(filename);
     for (const auto& l : losses) {
         loss_file << l << "\n";
@@ -103,14 +103,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Load config
-    std::string config_file = argv[1];
+    const std::string config_file = argv[1];
     std::map<std::string, std::string> config = read_config(config_file);
 
     const std::string data_dir = config["data_dir"];
-    std::string train_image_file = data_dir + "/train-images-idx3-ubyte";
-    std::string val_image_file = data_dir + "/t10k-images-idx3-ubyte";
-    std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
-    std::string val_label_file = data_dir + "/t10k-labels-idx1-ubyte";
+    const std::string train_image_file = data_dir + "/train-images-idx3-ubyte";
+    const std::string val_image_file = data_dir + "/t10k-images-idx3-ubyte";
+    const std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
+    const std::string val_label_file = data_dir + "/t10k-labels-idx1-ubyte";
 
     // Load all data into memory. 
     std::vector<std::vector<unsigned char> > train_images = read_mnist_images(train_image_file);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     std::vector<unsigned char> train_labels = read_mnist_labels(train_label_file);
     std::vector<unsigned char> val_labels = read_mnist_labels(val_label_file);
     
-    std::string log_dir = config["log_dir"];
+    const std::string log_dir = config["log_dir"];
     std::filesystem::create_directory(log_dir);
 
     MLP mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
