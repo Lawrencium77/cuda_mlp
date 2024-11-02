@@ -16,7 +16,7 @@ std::vector<std::vector<unsigned char> > read_mnist_images(const std::string& fi
         exit(EXIT_FAILURE);
     }
 
-    int magic_number = readBigEndianInt(file);
+    const int magic_number = readBigEndianInt(file);
     if (magic_number != 2051) {
         std::cerr << "Invalid MNIST image file!\n";
         exit(EXIT_FAILURE);
@@ -46,7 +46,7 @@ std::vector<unsigned char> read_mnist_labels(const std::string& filename) {
         exit(EXIT_FAILURE);
     }
 
-    int magic_number = readBigEndianInt(file);
+    const int magic_number = readBigEndianInt(file);
     if (magic_number != 2049) {
         std::cerr << "Invalid MNIST label file!\n";
         exit(EXIT_FAILURE);
@@ -67,10 +67,9 @@ std::vector<unsigned char> read_mnist_labels(const std::string& filename) {
 // Useful for debugging
 void printImageArray(
   const std::vector<std::vector<unsigned char> >& images,
-  const std::vector<unsigned char> labels) {
-  std::vector<unsigned char> image = images[0];
-  unsigned char label = labels[0];
-
+  const std::vector<unsigned char>& labels) {
+  const std::vector<unsigned char> image = images[0];
+  const unsigned char label = labels[0];
   
   std::cout << "Data for label " << (int)label << "\n" << std::endl;
   for (int i = 0; i < image.size(); ++i) {
