@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Load config
-    std::string config_file = argv[1];
+    const std::string config_file = argv[1];
     std::map<std::string, std::string> config = read_config(config_file);
 
     const std::string data_dir = config["data_dir"];

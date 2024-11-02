@@ -1,29 +1,24 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-class Matrix {
-  public:
-      float *data;
-      int rows;
-      int cols;
-      int numel;
-      
-      Matrix(); 
-      Matrix(int rows, int cols);
+struct Matrix {
+  float *data;
+  int rows;
+  int cols;
+  int numel;
 
-      ~Matrix();
+  Matrix(); 
+  Matrix(int rows, int cols);
 
-      Matrix(const Matrix& other);
+  ~Matrix();
 
-      void setData(const float* host_data);
-      void getData(float* host_data);
+  Matrix(const Matrix& other);
 
-      float* getDataPtr(){
-        return data;
-      }
+  void setData(const float* host_data);
+  void getData(float* host_data) const;
 
-      void random(const unsigned long seed, const float min, const float max);
-      Matrix& operator=(const Matrix& other);
+  void random(const unsigned long seed, const float min, const float max);
+  Matrix& operator=(const Matrix& other);
 };
 
 // Matrix-only ops
