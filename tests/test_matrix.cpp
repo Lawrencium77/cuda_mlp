@@ -10,12 +10,12 @@ void testPrintOp(Matrix& input1, Matrix& input2, float* data, int bsz, int feats
 }
 
 void testSum(Matrix& input1, float* data, int bsz, int feats) {
-    float sum = input1.sum();
+    float sum = matsum(input1);
     std::cout << "Sum for input1: " << sum  << "\n" << std::endl;
 }
 
 void testTranspose(Matrix& input1, float* data, int bsz, int feats) {
-    Matrix output = input1.transpose();
+    Matrix output = transpose(input1);
     output.getData(data);
     printMatrixData(data, feats, bsz);
 }
@@ -45,13 +45,13 @@ void testHadamard(Matrix& input1, Matrix& input2, float* data, int bsz, int feat
 }
 
 void testMul(Matrix& input1, Matrix& input2, float* data, int bsz) {
-    Matrix output = input1.matmul(input2.transpose());
+    Matrix output = matmul(input1, transpose(input2));
     output.getData(data);
     printMatrixData(data, bsz, bsz);
 }
 
 Matrix testSoftmax(Matrix& input, float* data, int bsz, int feats) {
-    Matrix output = input.softmax();
+    Matrix output = softmax(input);
 
     output.getData(data);
     printMatrixData(data, bsz, feats);
@@ -59,13 +59,13 @@ Matrix testSoftmax(Matrix& input, float* data, int bsz, int feats) {
 }
 
 void testSigmoid(Matrix& input1, float* data, int bsz, int feats) {
-    Matrix output = input1.sigmoid();
+    Matrix output = sigmoid(input1);
     output.getData(data);
     printMatrixData(data, bsz, feats);
 }
 
 void testRelu(Matrix& input1, float* data, int bsz, int feats) {
-    Matrix output = input1.relu();
+    Matrix output = relu(input1);
     output.getData(data);
     printMatrixData(data, bsz, feats);
 }
@@ -79,7 +79,7 @@ void testCrossEntropy(Matrix& input, int num_classes, int bsz) {
     }
     labels.setData(labels_data);
 
-    Matrix losses = input.get_ce_loss(labels);
+    Matrix losses = get_ce_loss(input, labels);
 
     float* data = new float[num_classes * bsz];
     losses.getData(data);
