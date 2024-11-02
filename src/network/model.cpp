@@ -19,8 +19,8 @@ Matrix SingleLayerPerceptron::forward(Matrix& input) {
   // input: bsz x dim_in
   // output: bsz x dim_out
   inputs = input; // Store for backward pass
-  Matrix Z = input.matmul(weights);
-  activations = use_activation ? Z.relu() : Z;
+  Matrix Z = matmul(input, weights);
+  activations = use_activation ? relu(Z) : Z;
   return activations;
 }
 
@@ -29,19 +29,19 @@ Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   // grad: bsz x dim_out
   // input_grads: bsz x dim_in
   // weight_grads: dim_in x dim_out
-  Matrix inputs_tranpose = inputs.transpose(); 
-  Matrix weights_tranpose = weights.transpose(); 
+  Matrix inputs_tranpose = transpose(inputs); 
+  Matrix weights_tranpose = transpose(weights); 
   Matrix delta;
   
   if (use_activation) {
-      Matrix relu_grad = activations.relu_backward(grad);
+      Matrix relu_grad = relu_backward(activations, grad);
       delta = relu_grad;
   } else {
     delta = grad;
   }
   
-  grads = inputs_tranpose.matmul(delta); 
-  Matrix input_grads = delta.matmul(weights_tranpose); 
+  grads = matmul(inputs_tranpose, delta); 
+  Matrix input_grads = matmul(delta, weights_tranpose); 
   return input_grads;
 }
 
@@ -65,7 +65,7 @@ Matrix MLP::forward(Matrix& input){
         y = layers[i].forward(y);
     }
     y = layers[num_layers].forward(y); // Classification head
-    return y.softmax();
+    return softmax(y);
 }
 
 void MLP::backward(Matrix& labels, Matrix& preds){
