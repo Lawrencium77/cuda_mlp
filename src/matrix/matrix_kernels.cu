@@ -1,7 +1,7 @@
 // CUDA kernels for Matrix class
 #include "matrix_kernels.h"
 
-__global__ void matrix_const_add(float *a, float value, float *output, int rows, int cols) {
+__global__ void matrix_const_add(const float *a, const float value, float *output, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -11,7 +11,7 @@ __global__ void matrix_const_add(float *a, float value, float *output, int rows,
     }
 }
 
-__global__ void matrix_const_mul(float *a, float value, float *output, int rows, int cols) {
+__global__ void matrix_const_mul(const float *a, const float value, float *output, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -21,7 +21,7 @@ __global__ void matrix_const_mul(float *a, float value, float *output, int rows,
     }
 }
 
-__global__ void matrix_sum(float* data, float* sum, int rows, int cols) {
+__global__ void matrix_sum(const float* data, float* sum, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -33,7 +33,7 @@ __global__ void matrix_sum(float* data, float* sum, int rows, int cols) {
 }
 
 
-__global__ void matrix_add(float *a, float *b, float *c, int rows, int cols) {
+__global__ void matrix_add(const float *a, const float *b, float *c, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -43,7 +43,7 @@ __global__ void matrix_add(float *a, float *b, float *c, int rows, int cols) {
     }
 }
 
-__global__ void matrix_hadamard(float *a, float *b, float *c, int rows, int cols) {
+__global__ void matrix_hadamard(const float *a, const float *b, float *c, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -53,7 +53,7 @@ __global__ void matrix_hadamard(float *a, float *b, float *c, int rows, int cols
     }
 }
 
-__global__ void matrix_transpose(float *a, float *b, int rows, int cols) {
+__global__ void matrix_transpose(const float *a, float *b, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -63,7 +63,7 @@ __global__ void matrix_transpose(float *a, float *b, int rows, int cols) {
 }
 
 // cols_a = rows_b
-__global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int cols_a, int cols_b) {
+__global__ void matrix_multiply(const float *a, const float *b, float *c, const int rows_a, const int cols_a, const int cols_b) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -76,7 +76,7 @@ __global__ void matrix_multiply(float *a, float *b, float *c, int rows_a, int co
     }
 }
 
-__global__ void matrix_softmax_over_rows(float *a, float* b, int rows, int cols) {
+__global__ void matrix_softmax_over_rows(const float *a, float* b, const int rows, const int cols) {
     int row = threadIdx.y;
 
     if (row < rows) {
@@ -101,7 +101,7 @@ __global__ void matrix_softmax_over_rows(float *a, float* b, int rows, int cols)
     }
 }
 
-__global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
+__global__ void matrix_sigmoid(const float *a, float* b, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -111,7 +111,7 @@ __global__ void matrix_sigmoid(float *a, float* b, int rows, int cols) {
     }
 }
 
-__global__ void matrix_relu(float *a, float* b, int rows, int cols) {
+__global__ void matrix_relu(const float *a, float* b, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -121,7 +121,7 @@ __global__ void matrix_relu(float *a, float* b, int rows, int cols) {
     }
 }
 
-__global__ void matrix_relu_backward(float *a, float *grad_output, float *grad_input, int rows, int cols) {
+__global__ void matrix_relu_backward(const float *a, const float *grad_output, float *grad_input, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -132,7 +132,7 @@ __global__ void matrix_relu_backward(float *a, float *grad_output, float *grad_i
 }
 
 // Random numbers drawn from uniform distribution
-__global__ void fill_with_random(float *a, unsigned long seed, int rows, int cols, float min, float max) {
+__global__ void fill_with_random(float *a, const unsigned long seed, const int rows, const int cols, const float min, const float max) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -146,7 +146,7 @@ __global__ void fill_with_random(float *a, unsigned long seed, int rows, int col
     }
 }
 
-__global__ void ce_loss(float *preds, float *labels, float *losses, int rows, int cols, const float epsilon) {
+__global__ void ce_loss(const float *preds, const float *labels, float *losses, const int rows, const int cols, const float epsilon) {
     int row = threadIdx.y;
 
     if (row < rows) {
@@ -156,7 +156,7 @@ __global__ void ce_loss(float *preds, float *labels, float *losses, int rows, in
     }
 }
 
-__global__ void softmax_bwd(float* labels, float* softmax_outputs, float* softmax_grads, int rows, int cols) {
+__global__ void softmax_bwd(const float* labels, const float* softmax_outputs, float* softmax_grads, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
