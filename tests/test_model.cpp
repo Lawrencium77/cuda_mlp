@@ -40,7 +40,7 @@ void testMLPForward(float* data, Matrix& input, int bsz, int feat_dim, int num_l
 
   Matrix labels = getLabels(bsz);
 
-  Matrix losses = output.get_ce_loss(labels);
+  Matrix losses = get_ce_loss(output, labels);
   losses.getData(data);
   printMatrixData(data, 1, bsz);
 }
@@ -50,7 +50,7 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
   mlp.randomise(0);
   Matrix output = mlp.forward(input);
   Matrix labels = getLabels(bsz);
-  Matrix losses = output.get_ce_loss(labels);
+  Matrix losses = get_ce_loss(output, labels);
 
   mlp.backward(labels, output);
 

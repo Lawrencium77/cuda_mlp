@@ -39,97 +39,18 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
-Matrix Matrix::operator+(const float value) {
-    Matrix result(rows, cols);
-
-    dim3 blockSize(16, 16);
-    dim3 gridSize(
-        (cols - 1) / blockSize.x + 1,
-        (rows - 1) / blockSize.y + 1
-    );
-
-    matrix_const_add<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
-    cudaDeviceSynchronize();
-    return result;
-}
-
-Matrix Matrix::operator-(const float value) {
-    float negative_value = -value;
-    return *this + negative_value;
-}
-
-Matrix Matrix::operator*(const float value) {
-    Matrix result(rows, cols);
-
-    dim3 blockSize(16, 16);
-    dim3 gridSize(
-        (cols - 1) / blockSize.x + 1,
-        (rows - 1) / blockSize.y + 1
-    );
-
-    matrix_const_mul<<<gridSize, blockSize>>>(data, value, result.data, rows, cols);
-    cudaDeviceSynchronize();
-    return result;
-}
-
-Matrix Matrix::operator/(const float value) {
-    float inv_value = 1 / value;
-    return *this * inv_value;
-}
-
-Matrix operator-(const float value, Matrix& mat) {
-    Matrix negative_matrix = mat * -1.0f;
-    return negative_matrix + value;
-}
-
-Matrix Matrix::operator+(Matrix& other) {
-    if (rows != other.rows || cols != other.cols){
-        std::cerr << "Matrix dimensions must match for addition!" << std::endl;
-        exit(1);
-    }
-    Matrix result(rows, cols);
-
-    dim3 blockSize(16, 16);
-    dim3 gridSize(
-        (cols - 1) / blockSize.x + 1,
-        (rows - 1) / blockSize.y + 1
-    );
-
-    matrix_add<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
-    cudaDeviceSynchronize();
-    return result;
-}
-
-Matrix Matrix::operator*(Matrix& other) {
-    if (rows != other.rows || cols != other.cols){
-        std::cerr << "Matrix dimensions must match for Hadamard product!" << std::endl;
-        exit(1);
-    }
-    Matrix result(rows, cols);
-
-    dim3 blockSize(16, 16);
-    dim3 gridSize(
-        (cols - 1) / blockSize.x + 1,
-        (rows - 1) / blockSize.y + 1
-    );
-
-    matrix_hadamard<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols);
-    cudaDeviceSynchronize();
-    return result;
-}
-
-float Matrix::sum() {
+float matsum(const Matrix& mat){
     float* d_sum;
     cudaMalloc(&d_sum, sizeof(float));
     cudaMemset(d_sum, 0, sizeof(float));
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sum<<<gridSize, blockSize>>>(data, d_sum, rows, cols);
+    matrix_sum<<<gridSize, blockSize>>>(mat.data, d_sum, mat.rows, mat.cols);
     cudaDeviceSynchronize();
 
     float h_sum = 0.0f;
@@ -140,99 +61,172 @@ float Matrix::sum() {
 }
 
 
-Matrix Matrix::transpose() {
-    Matrix result(cols, rows);
+Matrix transpose(const Matrix& mat) {
+    Matrix result(mat.cols, mat.rows);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_transpose<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    matrix_transpose<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
 
-Matrix Matrix::matmul(const Matrix& other) {
-    if (cols != other.rows){
-        std::cerr << "Trying to multiply two matrices with non-matchiing inner dim" << std::endl;
-        exit(1);
-    }
-
-    Matrix result(rows, other.cols);
-
-    dim3 blockSize(16, 16);
-    dim3 gridSize(
-        (other.cols - 1) / blockSize.x + 1,
-        (rows - 1) / blockSize.y + 1
-    );
-
-    matrix_multiply<<<gridSize, blockSize>>>(data, other.data, result.data, rows, cols, other.cols);
-    cudaDeviceSynchronize();
-    return result;
-};
-
-Matrix Matrix::softmax() {
+Matrix softmax(const Matrix& mat) {
     int MAX_COLS = 1024;
-    if (cols > MAX_COLS){
+    if (mat.cols > MAX_COLS){
         std::cerr << "Softmax kernel doesn't support cols > " << MAX_COLS << std::endl;
         exit(1);
     }
-    Matrix result(rows, cols);
+    Matrix result(mat.rows, mat.cols);
 
     dim3 blockSize(1, MAX_COLS);
     dim3 gridSize(1, 1);
 
-    matrix_softmax_over_rows<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 };
 
-Matrix Matrix::sigmoid() {
-    Matrix result(rows, cols);
+Matrix sigmoid(const Matrix& mat) {
+    Matrix result(mat.rows, mat.cols);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sigmoid<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    matrix_sigmoid<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 };
 
-Matrix Matrix::relu() {
-    Matrix result(rows, cols);
+Matrix relu(const Matrix& mat) {
+    Matrix result(mat.rows, mat.cols);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_relu<<<gridSize, blockSize>>>(data, result.data, rows, cols);
+    matrix_relu<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
 
-Matrix Matrix::relu_backward(Matrix& grad_output) {
-    Matrix grad_input(rows, cols);
+Matrix operator+(const Matrix& mat, const float value) {
+    Matrix result(mat.rows, mat.cols);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
-        (cols + blockSize.x - 1) / blockSize.x,
-        (rows + blockSize.y - 1) / blockSize.y
+        (mat.cols - 1) / blockSize.x + 1,
+        (mat.rows - 1) / blockSize.y + 1
     );
 
-    matrix_relu_backward<<<gridSize, blockSize>>>(data, grad_output.data, grad_input.data, rows, cols);
+    matrix_const_add<<<gridSize, blockSize>>>(mat.data, value, result.data, mat.rows, mat.cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix operator*(const Matrix& mat, const float value) {
+    Matrix result(mat.rows, mat.cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat.cols - 1) / blockSize.x + 1,
+        (mat.rows - 1) / blockSize.y + 1
+    );
+
+    matrix_const_mul<<<gridSize, blockSize>>>(mat.data, value, result.data, mat.rows, mat.cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix operator-(const float value, const Matrix& mat) {
+    Matrix negative_matrix = mat * -1.0f;
+    return negative_matrix + value;
+}
+
+Matrix operator/(const Matrix& mat, const float value) {
+    float inv_value = 1 / value;
+    return mat * inv_value;
+}
+
+Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
+    if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
+        std::cerr << "Matrix dimensions must match for addition!" << std::endl;
+        exit(1);
+    }
+    Matrix result(mat1.rows, mat1.cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat1.cols - 1) / blockSize.x + 1,
+        (mat1.rows - 1) / blockSize.y + 1
+    );
+
+    matrix_add<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
+    if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
+        std::cerr << "Matrix dimensions must match for Hadamard product!" << std::endl;
+        exit(1);
+    }
+    Matrix result(mat1.rows, mat1.cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat1.cols - 1) / blockSize.x + 1,
+        (mat1.rows - 1) / blockSize.y + 1
+    );
+
+    matrix_hadamard<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols);
+    cudaDeviceSynchronize();
+    return result;
+}
+
+Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
+    if (mat1.cols != mat2.rows){
+        std::cerr << "Trying to multiply two matrices with non-matchiing inner dim" << std::endl;
+        exit(1);
+    }
+
+    Matrix result(mat1.rows, mat2.cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat2.cols - 1) / blockSize.x + 1,
+        (mat1.rows - 1) / blockSize.y + 1
+    );
+
+    matrix_multiply<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols, mat2.cols);
+    cudaDeviceSynchronize();
+    return result;
+};
+
+Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output) {
+    Matrix grad_input(mat1.rows, mat1.cols);
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat1.cols + blockSize.x - 1) / blockSize.x,
+        (mat1.rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_relu_backward<<<gridSize, blockSize>>>(mat1.data, grad_output.data, grad_input.data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return grad_input;
 }
 
-
-void Matrix::random(unsigned long seed, float min, float max) {
+void Matrix::random(const unsigned long seed, const float min, const float max) {
     dim3 blockSize(16, 16);
     dim3 gridSize(
         (cols + blockSize.x - 1) / blockSize.x,
@@ -243,29 +237,29 @@ void Matrix::random(unsigned long seed, float min, float max) {
     cudaDeviceSynchronize();
 };
 
-Matrix Matrix::get_ce_loss(Matrix& labels) {
-    if (rows != labels.rows) {
+Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
+    if (mat1.rows != labels.rows) {
         std::cerr << "Non-matching number of rows for input and labels" << std::endl;
         exit(1);
     }
 
-    Matrix losses = Matrix(rows, 1);
+    Matrix losses = Matrix(mat1.rows, 1);
 
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, 1);
 
-    ce_loss<<<gridSize, blockSize>>>(data, labels.data, losses.data, rows, cols);
+    ce_loss<<<gridSize, blockSize>>>(mat1.data, labels.data, losses.data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return losses;
 };
 
 //  labels => (bsz, 1) => represents the index of the correct output
 //  softmax_output => (bsz, num_classes)
-Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
-    int bsz = softmax_output.getRows();
-    int num_classes = softmax_output.getCols();
+Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
+    int bsz = softmax_output.rows;
+    int num_classes = softmax_output.cols;
 
-    if (labels.getRows() != bsz) {
+    if (labels.rows != bsz) {
         std::cerr << "Non-matching number of rows for input and labels" << std::endl;
         exit(1);
     }
@@ -278,7 +272,7 @@ Matrix ce_softmax_bwd(Matrix& labels, Matrix& softmax_output) {
         (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(labels.getDataPtr(), softmax_output.getDataPtr(), softmax_grads.getDataPtr(), bsz, num_classes);
+    softmax_bwd<<<gridSize, blockSize>>>(labels.data, softmax_output.data, softmax_grads.data, bsz, num_classes);
     cudaDeviceSynchronize();
     return softmax_grads;
 }

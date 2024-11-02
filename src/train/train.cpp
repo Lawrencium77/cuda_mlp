@@ -47,7 +47,7 @@ float get_val_loss(
     int current_bsz = std::min(bsz, num_samples - i * bsz);
     std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, i);
     Matrix output = mlp.forward(data_and_labels.first);
-    float loss = output.get_ce_loss(data_and_labels.second).sum();
+    float loss = matsum(get_ce_loss(output, data_and_labels.second));
     total_loss += loss;
   }
   return total_loss / num_samples;
@@ -72,7 +72,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
         std::pair<Matrix, Matrix> data_and_labels = prepare_batch(train_images, train_labels, bsz, step);
         
         Matrix output = mlp.forward(data_and_labels.first);
-        float loss = output.get_ce_loss(data_and_labels.second).sum() / bsz;
+        float loss = matsum(get_ce_loss(output, data_and_labels.second)) / bsz;
         train_losses.push_back(loss);
 
         mlp.backward(data_and_labels.second, output);
