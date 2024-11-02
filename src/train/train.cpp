@@ -108,7 +108,12 @@ int main(int argc, char* argv[]) {
     const std::string data_dir = config["data_dir"];
     const std::string log_dir = config["log_dir"];
     const int num_layers = std::stoi(config["num_layers"]);
+    const int num_steps = std::stoi(config["num_steps"]);
+    const int bsz = std::stoi(config["bsz"]);
     const int val_every = std::stoi(config["val_every"]);
+    const float learning_rate = std::stof(config["learning_rate"]);
+
+    std::cout << learning_rate << std::endl;
     
     std::filesystem::create_directory(log_dir);
 
@@ -128,7 +133,7 @@ int main(int argc, char* argv[]) {
     MLP mlp(feat_dim, num_layers);
     mlp.randomise(0);
 
-    std::pair<std::vector<float>, std::vector<float>> losses = train_loop(mlp, train_images, train_labels, val_images, val_labels, 1600, 8, 0.01f, val_every, log_dir);
+    std::pair<std::vector<float>, std::vector<float>> losses = train_loop(mlp, train_images, train_labels, val_images, val_labels, num_steps, bsz, learning_rate, val_every, log_dir);
     
     save_losses(losses.first, log_dir + "/train_losses.txt");
     save_losses(losses.second, log_dir + "/val_losses.txt");
