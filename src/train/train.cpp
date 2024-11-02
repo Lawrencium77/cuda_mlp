@@ -1,3 +1,4 @@
+#include "config_reader.h"
 #include "model.h"
 #include "read_mnist.h"
 #include "test_utils.h"
@@ -97,11 +98,20 @@ void save_losses(std::vector<float>& losses, std::string filename) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <mnist_data_directory>\n";
+        std::cerr << "Usage: " << argv[0] << " <config_file>\n";
         return EXIT_FAILURE;
     }
 
-    std::string data_dir = argv[1];
+    // Load config
+    std::string config_file = argv[1];
+    std::map<std::string, std::string> config = read_config(config_file);
+    const std::string data_dir = config["data_dir"];
+    const std::string log_dir = config["log_dir"];
+    const int num_layers = std::stoi(config["num_layers"]);
+    const int val_every = std::stoi(config["val_every"]);
+    
+    std::filesystem::create_directory(log_dir);
+
     std::string train_image_file = data_dir + "/train-images-idx3-ubyte";
     std::string val_image_file = data_dir + "/t10k-images-idx3-ubyte";
     std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
@@ -114,15 +124,10 @@ int main(int argc, char* argv[]) {
     std::vector<unsigned char> val_labels = read_mnist_labels(val_label_file);
 
     const int feat_dim = 28 * 28;
-    const int num_layers = 4;
     
     MLP mlp(feat_dim, num_layers);
     mlp.randomise(0);
 
-    std::string log_dir = "./log";
-    std::filesystem::create_directory(log_dir);
-
-    const int val_every = 200;
     std::pair<std::vector<float>, std::vector<float>> losses = train_loop(mlp, train_images, train_labels, val_images, val_labels, 1600, 8, 0.01f, val_every, log_dir);
     
     save_losses(losses.first, log_dir + "/train_losses.txt");
