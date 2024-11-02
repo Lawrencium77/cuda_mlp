@@ -4,7 +4,6 @@ Training an MLP on MNIST in raw CUDA/C++.
 ## TODO
 
 * Linting.
-* Change matmul API.
 * Consider all of the synchronisation statements. Are these slowing me down loads?
 * Could make lots of const args everwhere.
 * Why are larger batch sizes giving NaNs?
