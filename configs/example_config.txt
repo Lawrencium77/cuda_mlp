@@ -1,5 +1,6 @@
 data_dir=./mnist_data
 num_layers=4
+feat_dim=784
 log_dir=./log
 val_every=200
 num_steps=1000

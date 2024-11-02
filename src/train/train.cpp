@@ -105,35 +105,37 @@ int main(int argc, char* argv[]) {
     // Load config
     std::string config_file = argv[1];
     std::map<std::string, std::string> config = read_config(config_file);
+
     const std::string data_dir = config["data_dir"];
-    const std::string log_dir = config["log_dir"];
-    const int num_layers = std::stoi(config["num_layers"]);
-    const int num_steps = std::stoi(config["num_steps"]);
-    const int bsz = std::stoi(config["bsz"]);
-    const int val_every = std::stoi(config["val_every"]);
-    const float learning_rate = std::stof(config["learning_rate"]);
-
-    std::cout << learning_rate << std::endl;
-    
-    std::filesystem::create_directory(log_dir);
-
     std::string train_image_file = data_dir + "/train-images-idx3-ubyte";
     std::string val_image_file = data_dir + "/t10k-images-idx3-ubyte";
     std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
     std::string val_label_file = data_dir + "/t10k-labels-idx1-ubyte";
 
-    // Load all data into memory. We split it into batches on the fly.
+    // Load all data into memory. 
     std::vector<std::vector<unsigned char> > train_images = read_mnist_images(train_image_file);
     std::vector<std::vector<unsigned char> > val_images = read_mnist_images(val_image_file);
     std::vector<unsigned char> train_labels = read_mnist_labels(train_label_file);
     std::vector<unsigned char> val_labels = read_mnist_labels(val_label_file);
-
-    const int feat_dim = 28 * 28;
     
-    MLP mlp(feat_dim, num_layers);
+    std::string log_dir = config["log_dir"];
+    std::filesystem::create_directory(log_dir);
+
+    MLP mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
     mlp.randomise(0);
 
-    std::pair<std::vector<float>, std::vector<float>> losses = train_loop(mlp, train_images, train_labels, val_images, val_labels, num_steps, bsz, learning_rate, val_every, log_dir);
+    std::pair<std::vector<float>, std::vector<float>> losses = train_loop(
+      mlp, 
+      train_images, 
+      train_labels, 
+      val_images, 
+      val_labels, 
+      std::stoi(config["num_steps"]), 
+      std::stoi(config["bsz"]), 
+      std::stof(config["learning_rate"]), 
+      std::stoi(config["val_every"]), 
+      log_dir
+    );
     
     save_losses(losses.first, log_dir + "/train_losses.txt");
     save_losses(losses.second, log_dir + "/val_losses.txt");
