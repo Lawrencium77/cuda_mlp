@@ -3,9 +3,7 @@ Training an MLP on MNIST in raw CUDA/C++.
 
 ## TODO
 
-* Logging.
 * Linting.
-* Model checkpoint saving.
 * Change matmul API.
 * Consider all of the synchronisation statements. Are these slowing me down loads?
 * Could make lots of const args everwhere.
@@ -13,5 +11,6 @@ Training an MLP on MNIST in raw CUDA/C++.
 * Switch to CMake.
 * Surely there is a refactor required for lots of parts of the codebase.
 * Proper tests.
+* Plotting.
 * log-sum exp trick for softmax + CE/
 * Faster kernels, e.g. tiled matmuls.
