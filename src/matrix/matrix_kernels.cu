@@ -77,7 +77,7 @@ __global__ void matrix_multiply(const float *a, const float *b, float *c, const 
 }
 
 __global__ void matrix_softmax_over_rows(const float *a, float* b, const int rows, const int cols) {
-    int row = threadIdx.y;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (row < rows) {
         float row_max = a[row * cols];

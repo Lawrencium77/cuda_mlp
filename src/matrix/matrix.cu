@@ -75,15 +75,10 @@ Matrix transpose(const Matrix& mat) {
 }
 
 Matrix softmax(const Matrix& mat) {
-    int MAX_COLS = 1024;
-    if (mat.cols > MAX_COLS){
-        std::cerr << "Softmax kernel doesn't support cols > " << MAX_COLS << std::endl;
-        exit(1);
-    }
     Matrix result(mat.rows, mat.cols);
 
-    dim3 blockSize(1, MAX_COLS);
-    dim3 gridSize(1, 1);
+    dim3 blockSize(1, 1024);
+    dim3 gridSize(1, (mat.rows + 1024 - 1) / 1024);
 
     matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
