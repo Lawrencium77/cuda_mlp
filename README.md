@@ -6,7 +6,6 @@ Training an MLP on MNIST in raw CUDA/C++.
 * Linting.
 * Switch to CMake.
 * log-sum exp trick for softmax + CE/
-* I think there's a misunderstanding in how I launch the softmax kernel. Rows-cols confusion.
 * Why are larger batch sizes giving NaNs?
 * Consider all of the synchronisation statements. Are these slowing me down loads? Will it require a PyTorch-style caching allocator?
 * Proper tests.
