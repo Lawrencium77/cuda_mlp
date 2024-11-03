@@ -2,6 +2,9 @@ GCC = g++
 NVCC = nvcc
 
 CFLAGS = -I./include
+ifeq ($(DEBUG), 1)
+    CFLAGS += -g
+endif
 
 SRC_DIR = src
 TEST_DIR = tests
@@ -37,4 +40,3 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 .PHONY: all clean
-make: *** No rule to make target 'src/train/config_read.cpp', needed by 'build/train'.  Stop.
