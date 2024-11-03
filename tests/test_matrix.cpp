@@ -111,7 +111,9 @@ void runTests() {
     Matrix input2 = Matrix(bsz, feats);
     input1.random(0, -1.0f, 1.0f);
     input2.random(1, -1.0f, 1.0f);
-    float* data = new float[bsz * feats];
+    
+    int largest_dim = bsz > feats ? bsz : feats;
+    float* data = new float[largest_dim * largest_dim];
 
     std::cout << "Testing Print" << std::endl;
     testPrintOp(input1, input2, data, bsz, feats);
