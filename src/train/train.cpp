@@ -63,6 +63,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
   const int bsz,
   const float lr,
   const int val_every,
+  const bool verbose,
   const std::string& log_dir
 ){
     std::vector<float> train_losses;
@@ -74,6 +75,10 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
         Matrix output = mlp.forward(data_and_labels.first);
         float loss = matsum(get_ce_loss(output, data_and_labels.second)) / bsz;
         train_losses.push_back(loss);
+
+        if (verbose) {
+          std::cout << "Step " << step << " Loss: " << loss << std::endl;
+        }
 
         mlp.backward(data_and_labels.second, output);
         mlp.update_weights(lr);
@@ -134,6 +139,7 @@ int main(int argc, char* argv[]) {
       std::stoi(config["bsz"]), 
       std::stof(config["learning_rate"]), 
       std::stoi(config["val_every"]), 
+      std::stoi(config["verbose"]),
       log_dir
     );
     

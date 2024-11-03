@@ -6,3 +6,4 @@ val_every=200
 num_steps=1000
 bsz=8
 learning_rate=0.01
+verbose=1
