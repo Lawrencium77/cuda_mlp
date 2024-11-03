@@ -7,17 +7,18 @@
 std::pair<Matrix, Matrix> prepare_batch(
   const std::vector<std::vector<unsigned char> >& images,
   const std::vector<unsigned char>& labels,
-  const int bsz, 
+  const int bsz,
+  const int feat_dim, 
   const int step
 ) {
   const int offset = step * bsz;
 
   // Prepare input 
-  Matrix batch(bsz, 28 * 28);
-  float* data = new float[bsz * 28 * 28];
+  Matrix batch(bsz, feat_dim);
+  float* data = new float[bsz * feat_dim];
   for (int i = 0; i < bsz; ++i) {
-    for (int j = 0; j < 28 * 28; ++j) {
-      data[i * 28 * 28 + j] = (float)images[offset + i][j] / 255.0; // Normalise
+    for (int j = 0; j < feat_dim; ++j) {
+      data[i * feat_dim + j] = (float)images[offset + i][j] / 255.0; // Normalise
     }
   }
   batch.setData(data);
@@ -37,7 +38,8 @@ float get_val_loss(
   MLP& mlp,
   const std::vector<std::vector<unsigned char>>& val_images,
   const std::vector<unsigned char>& val_labels,
-  const int bsz
+  const int bsz,
+  const int feat_dim
 ) {
   const int num_samples = val_images.size();
   const int num_batches = (num_samples + bsz - 1) / bsz;
@@ -45,7 +47,7 @@ float get_val_loss(
 
   for (int i = 0; i < num_batches; ++i) {
     const int current_bsz = std::min(bsz, num_samples - i * bsz);
-    std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, i);
+    std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, feat_dim, i);
     Matrix output = mlp.forward(data_and_labels.first);
     float loss = matsum(get_ce_loss(output, data_and_labels.second));
     total_loss += loss;
@@ -61,6 +63,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
   const std::vector<unsigned char>& val_labels,
   const int num_iters,
   const int bsz,
+  const int feat_dim,
   const float lr,
   const int val_every,
   const bool verbose,
@@ -70,7 +73,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
     std::vector<float> val_losses;
 
     for (int step = 0; step < num_iters; ++step) {
-        std::pair<Matrix, Matrix> data_and_labels = prepare_batch(train_images, train_labels, bsz, step);
+        std::pair<Matrix, Matrix> data_and_labels = prepare_batch(train_images, train_labels, bsz, feat_dim, step);
         
         Matrix output = mlp.forward(data_and_labels.first);
         float loss = matsum(get_ce_loss(output, data_and_labels.second)) / bsz;
@@ -84,8 +87,8 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
         mlp.update_weights(lr);
 
         if (step % val_every == 0) {
-            float val_loss = get_val_loss(mlp, val_images, val_labels, bsz);
-            std::cout << "Step " << step <<  " Validation Loss: " << val_loss << std::endl;
+            float val_loss = get_val_loss(mlp, val_images, val_labels, bsz, feat_dim);
+            // std::cout << "Step " << step <<  " Validation Loss: " << val_loss << std::endl;
             val_losses.push_back(val_loss);
         }
     }
@@ -137,6 +140,7 @@ int main(int argc, char* argv[]) {
       val_labels, 
       std::stoi(config["num_steps"]), 
       std::stoi(config["bsz"]), 
+      std::stoi(config["feat_dim"]), 
       std::stof(config["learning_rate"]), 
       std::stoi(config["val_every"]), 
       std::stoi(config["verbose"]),
