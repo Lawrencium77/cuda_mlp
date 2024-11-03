@@ -39,6 +39,27 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
+float matabsmax(const Matrix& mat){
+    float* d_max;
+    cudaMalloc(&d_max, sizeof(float));
+    cudaMemset(d_max, 0, sizeof(float));
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_max_abs<<<gridSize, blockSize>>>(mat.data, d_max, mat.rows, mat.cols);
+    cudaDeviceSynchronize();
+
+    float h_sum = 0.0f;
+    cudaMemcpy(&h_sum, d_max, sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaFree(d_max);
+    return h_sum;
+}
+
 float matsum(const Matrix& mat){
     float* d_sum;
     cudaMalloc(&d_sum, sizeof(float));

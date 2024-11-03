@@ -22,6 +22,7 @@ struct Matrix {
 };
 
 // Matrix-only ops
+float matabsmax(const Matrix& mat);
 float matsum(const Matrix& mat);
 Matrix transpose(const Matrix& mat);
 Matrix softmax(const Matrix& mat);
