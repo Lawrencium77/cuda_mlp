@@ -3,35 +3,62 @@
 #include "read_mnist.h"
 #include "test_utils.h"
 #include <filesystem>
+#include <algorithm>
+#include <random>
+
+void shuffle_dataset(
+    std::vector<std::vector<unsigned char>>& images,
+    std::vector<unsigned char>& labels
+) {
+    std::vector<size_t> indices(images.size());
+    for (size_t i = 0; i < indices.size(); ++i) indices[i] = i;
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+
+    std::vector<std::vector<unsigned char>> images_shuffled(images.size());
+    std::vector<unsigned char> labels_shuffled(labels.size());
+
+    for (size_t i = 0; i < indices.size(); ++i) {
+        images_shuffled[i] = images[indices[i]];
+        labels_shuffled[i] = labels[indices[i]];
+    }
+
+    images = std::move(images_shuffled);
+    labels = std::move(labels_shuffled);
+}
 
 std::pair<Matrix, Matrix> prepare_batch(
   const std::vector<std::vector<unsigned char> >& images,
   const std::vector<unsigned char>& labels,
-  const int bsz,
+  const int current_bsz,
   const int feat_dim, 
-  const int step
+  const int batch_idx
 ) {
-  const int offset = step * bsz;
+    const int offset = batch_idx * current_bsz;
 
-  // Prepare input 
-  Matrix batch(bsz, feat_dim);
-  float* data = new float[bsz * feat_dim];
-  for (int i = 0; i < bsz; ++i) {
-    for (int j = 0; j < feat_dim; ++j) {
-      data[i * feat_dim + j] = (float)images[offset + i][j] / 255.0; // Normalise
+    // Prepare input
+    Matrix batch(current_bsz, feat_dim);
+    float* data = new float[current_bsz * feat_dim];
+    for (int i = 0; i < current_bsz; ++i) {
+        int idx = offset + i;
+        for (int j = 0; j < feat_dim; ++j) {
+            data[i * feat_dim + j] = static_cast<float>(images[idx][j]) / 255.0f; // Normalize
+        }
     }
-  }
-  batch.setData(data);
+    batch.setData(data);
 
-  // Prepare labels
-  Matrix labels_batch(bsz, 1);
-  float* labels_data = new float[bsz];
-  for (int i = 0; i < bsz; ++i) {
-    labels_data[i] = (float)labels[offset + i];
-  }
-  labels_batch.setData(labels_data);
+    // Prepare labels
+    Matrix labels_batch(current_bsz, 1);
+    float* labels_data = new float[current_bsz];
+    for (int i = 0; i < current_bsz; ++i) {
+        int idx = offset + i;
+        labels_data[i] = static_cast<float>(labels[idx]);
+    }
+    labels_batch.setData(labels_data);
 
-  return std::make_pair(batch, labels_batch);
+    return std::make_pair(batch, labels_batch);
 }
 
 float get_val_loss(
@@ -57,40 +84,56 @@ float get_val_loss(
 
 std::pair<std::vector<float>, std::vector<float>> train_loop(
   MLP& mlp, 
-  const std::vector<std::vector<unsigned char>>& train_images,
-  const std::vector<unsigned char>& train_labels,
+  std::vector<std::vector<unsigned char>>& train_images,
+  std::vector<unsigned char>& train_labels,             
   const std::vector<std::vector<unsigned char>>& val_images,
   const std::vector<unsigned char>& val_labels,
-  const int num_iters,
+  const int num_epochs,
   const int bsz,
   const int feat_dim,
   const float lr,
-  const int val_every,
   const bool verbose,
   const std::string& log_dir
 ){
     std::vector<float> train_losses;
     std::vector<float> val_losses;
 
-    for (int step = 0; step < num_iters; ++step) {
-        std::pair<Matrix, Matrix> data_and_labels = prepare_batch(train_images, train_labels, bsz, feat_dim, step);
-        
-        Matrix output = mlp.forward(data_and_labels.first);
-        float loss = matsum(get_ce_loss(output, data_and_labels.second)) / bsz;
-        train_losses.push_back(loss);
+    const int num_samples = train_images.size();
+    const int num_batches_per_epoch = (num_samples + bsz - 1) / bsz;
 
-        if (verbose) {
-          std::cout << "Step " << step << " Loss: " << loss << std::endl;
+    for (int epoch = 0; epoch < num_epochs; ++epoch) {
+        std::cout << "Epoch " << epoch + 1 << "/" << num_epochs << std::endl;
+
+        shuffle_dataset(train_images, train_labels);
+
+        for (int batch_idx = 0; batch_idx < num_batches_per_epoch; ++batch_idx) {
+            const int current_bsz = std::min(bsz, num_samples - batch_idx * bsz);
+            std::pair<Matrix, Matrix> data_and_labels = prepare_batch(
+                train_images,
+                train_labels,
+                current_bsz,
+                feat_dim,
+                batch_idx
+            );
+
+            Matrix output = mlp.forward(data_and_labels.first);
+            float loss = matsum(get_ce_loss(output, data_and_labels.second)) / current_bsz;
+            train_losses.push_back(loss);
+
+            if (verbose) {
+                std::cout << "Epoch [" << epoch + 1 << "/" << num_epochs << "] "
+                          << "Batch [" << batch_idx + 1 << "/" << num_batches_per_epoch << "] "
+                          << "Loss: " << loss << std::endl;
+            }
+
+            mlp.backward(data_and_labels.second, output);
+            mlp.update_weights(lr);
         }
 
-        mlp.backward(data_and_labels.second, output);
-        mlp.update_weights(lr);
-
-        if (step % val_every == 0) {
-            float val_loss = get_val_loss(mlp, val_images, val_labels, bsz, feat_dim);
-            // std::cout << "Step " << step <<  " Validation Loss: " << val_loss << std::endl;
-            val_losses.push_back(val_loss);
-        }
+        // Validate at end of each epoch
+        float val_loss = get_val_loss(mlp, val_images, val_labels, bsz, feat_dim);
+        val_losses.push_back(val_loss);
+        std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss << std::endl;
     }
     
     return std::make_pair(train_losses, val_losses);
@@ -138,11 +181,10 @@ int main(int argc, char* argv[]) {
       train_labels, 
       val_images, 
       val_labels, 
-      std::stoi(config["num_steps"]), 
+      std::stoi(config["num_epochs"]),
       std::stoi(config["bsz"]), 
       std::stoi(config["feat_dim"]), 
       std::stof(config["learning_rate"]), 
-      std::stoi(config["val_every"]), 
       std::stoi(config["verbose"]),
       log_dir
     );
