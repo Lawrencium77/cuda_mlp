@@ -29,6 +29,7 @@ Matrix SingleLayerPerceptron::backward(const Matrix& grad) {
   // grad: bsz x dim_out
   // input_grads: bsz x dim_in
   // weight_grads: dim_in x dim_out
+  const int bsz = grad.rows;
   const Matrix inputs_tranpose = transpose(inputs); 
   const Matrix weights_tranpose = transpose(weights); 
   Matrix delta;
@@ -40,7 +41,7 @@ Matrix SingleLayerPerceptron::backward(const Matrix& grad) {
     delta = grad;
   }
   
-  grads = matmul(inputs_tranpose, delta); 
+  grads = matmul(inputs_tranpose, delta) / (float)bsz;
   Matrix input_grads = matmul(delta, weights_tranpose); 
   return input_grads;
 }
