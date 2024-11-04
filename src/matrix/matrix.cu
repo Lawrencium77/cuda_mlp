@@ -39,6 +39,27 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
+float matabsmax(const Matrix& mat){
+    float* d_max;
+    cudaMalloc(&d_max, sizeof(float));
+    cudaMemset(d_max, 0, sizeof(float));
+
+    dim3 blockSize(16, 16);
+    dim3 gridSize(
+        (mat.cols + blockSize.x - 1) / blockSize.x,
+        (mat.rows + blockSize.y - 1) / blockSize.y
+    );
+
+    matrix_max_abs<<<gridSize, blockSize>>>(mat.data, d_max, mat.rows, mat.cols);
+    cudaDeviceSynchronize();
+
+    float h_sum = 0.0f;
+    cudaMemcpy(&h_sum, d_max, sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaFree(d_max);
+    return h_sum;
+}
+
 float matsum(const Matrix& mat){
     float* d_sum;
     cudaMalloc(&d_sum, sizeof(float));
@@ -75,15 +96,10 @@ Matrix transpose(const Matrix& mat) {
 }
 
 Matrix softmax(const Matrix& mat) {
-    int MAX_COLS = 1024;
-    if (mat.cols > MAX_COLS){
-        std::cerr << "Softmax kernel doesn't support cols > " << MAX_COLS << std::endl;
-        exit(1);
-    }
     Matrix result(mat.rows, mat.cols);
 
-    dim3 blockSize(1, MAX_COLS);
-    dim3 gridSize(1, 1);
+    dim3 blockSize(1, 1024);
+    dim3 gridSize(1, (mat.rows + 1024 - 1) / 1024);
 
     matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
