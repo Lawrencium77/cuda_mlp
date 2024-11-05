@@ -1,8 +1,11 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <string>
+
 struct Matrix {
-  float *data;
+  float *host_data;
+  float *device_data;
   int rows;
   int cols;
   int numel;
@@ -14,11 +17,15 @@ struct Matrix {
 
   Matrix(const Matrix& other);
 
-  void setData(const float* host_data);
-  void getData(float* host_data) const;
+  void toDevice();
+  void toHost();
+
+  void setHostData(float *data);
 
   void random(const unsigned long seed, const float min, const float max);
   Matrix& operator=(const Matrix& other);
+
+  void printData(std::string message = "");
 };
 
 // Matrix-only ops

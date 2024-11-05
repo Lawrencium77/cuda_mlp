@@ -2,41 +2,70 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
-Matrix::Matrix() : rows(0), cols(0), numel(0), data(nullptr) {}
+Matrix::Matrix() : rows(0), cols(0), numel(0), host_data(nullptr), device_data(nullptr) {}
 
 Matrix::Matrix(int rows, int cols) : rows(rows), cols(cols), numel(rows * cols) {
-    cudaMalloc(&data, numel * sizeof(float));
+    host_data = new float[numel];
+    cudaMalloc(&device_data, numel * sizeof(float));
 }
 
 Matrix::~Matrix() {
-    cudaFree(data);
+    delete [] host_data;
+    cudaFree(device_data);
 }
 
-void Matrix::setData(const float* host_data) {
-    cudaMemcpy(data, host_data, numel * sizeof(float), cudaMemcpyHostToDevice);
+void Matrix::toDevice() {
+    cudaMemcpy(device_data, host_data, numel * sizeof(float), cudaMemcpyHostToDevice);
 }
 
-void Matrix::getData(float* host_data) const {
-    cudaMemcpy(host_data, data, numel * sizeof(float), cudaMemcpyDeviceToHost);
+void Matrix::toHost() {
+    cudaMemcpy(host_data, device_data, numel * sizeof(float), cudaMemcpyDeviceToHost);
+}
+
+void Matrix::setHostData(float *data) {
+    delete [] host_data;
+    host_data = data;
 }
 
 Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), numel(other.numel) {
-    cudaMalloc(&data, numel * sizeof(float));
-    cudaMemcpy(data, other.data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
+    host_data = new float[numel];
+    std::copy(other.host_data, other.host_data + numel, host_data);
+
+    cudaMalloc(&device_data, numel * sizeof(float));
+    cudaMemcpy(device_data, other.device_data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
 }
 
 Matrix& Matrix::operator=(const Matrix& other) {
     if (this != &other) {
-        cudaFree(data);
+        // Deallocate and reallocate resources since we can't assume numel == other.numel
+        delete [] host_data;
+        cudaFree(device_data);
 
         rows = other.rows;
         cols = other.cols;
         numel = other.numel;
 
-        cudaMalloc(&data, numel * sizeof(float));
-        cudaMemcpy(data, other.data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
+        host_data = new float[numel];
+        std::copy(other.host_data, other.host_data + numel, host_data);
+
+        cudaMalloc(&device_data, numel * sizeof(float));
+        cudaMemcpy(device_data, other.device_data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
     }
     return *this;
+}
+
+void Matrix::printData(std::string message) {
+    toHost();
+    if (message != "") {
+        std::cout << message << ": \n";
+    }
+    for (int i = 0; i < rows; i++){
+        for (int j = 0; j < cols; j++){
+            std::cout << host_data[i * cols + j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 float matabsmax(const Matrix& mat){
@@ -50,7 +79,7 @@ float matabsmax(const Matrix& mat){
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_max_abs<<<gridSize, blockSize>>>(mat.data, d_max, mat.rows, mat.cols);
+    matrix_max_abs<<<gridSize, blockSize>>>(mat.device_data, d_max, mat.rows, mat.cols);
     cudaDeviceSynchronize();
 
     float h_sum = 0.0f;
@@ -71,7 +100,7 @@ float matsum(const Matrix& mat){
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sum<<<gridSize, blockSize>>>(mat.data, d_sum, mat.rows, mat.cols);
+    matrix_sum<<<gridSize, blockSize>>>(mat.device_data, d_sum, mat.rows, mat.cols);
     cudaDeviceSynchronize();
 
     float h_sum = 0.0f;
@@ -90,7 +119,7 @@ Matrix transpose(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_transpose<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
+    matrix_transpose<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -101,7 +130,7 @@ Matrix softmax(const Matrix& mat) {
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, (mat.rows + 1024 - 1) / 1024);
 
-    matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
+    matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 };
@@ -115,7 +144,7 @@ Matrix sigmoid(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sigmoid<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
+    matrix_sigmoid<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 };
@@ -129,7 +158,7 @@ Matrix relu(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_relu<<<gridSize, blockSize>>>(mat.data, result.data, mat.rows, mat.cols);
+    matrix_relu<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -143,7 +172,7 @@ Matrix operator+(const Matrix& mat, const float value) {
         (mat.rows - 1) / blockSize.y + 1
     );
 
-    matrix_const_add<<<gridSize, blockSize>>>(mat.data, value, result.data, mat.rows, mat.cols);
+    matrix_const_add<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -157,7 +186,7 @@ Matrix operator*(const Matrix& mat, const float value) {
         (mat.rows - 1) / blockSize.y + 1
     );
 
-    matrix_const_mul<<<gridSize, blockSize>>>(mat.data, value, result.data, mat.rows, mat.cols);
+    matrix_const_mul<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -185,7 +214,7 @@ Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_add<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols);
+    matrix_add<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -203,7 +232,7 @@ Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_hadamard<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols);
+    matrix_hadamard<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return result;
 }
@@ -222,7 +251,7 @@ Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_multiply<<<gridSize, blockSize>>>(mat1.data, mat2.data, result.data, mat1.rows, mat1.cols, mat2.cols);
+    matrix_multiply<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols, mat2.cols);
     cudaDeviceSynchronize();
     return result;
 };
@@ -236,7 +265,7 @@ Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output) {
         (mat1.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_relu_backward<<<gridSize, blockSize>>>(mat1.data, grad_output.data, grad_input.data, mat1.rows, mat1.cols);
+    matrix_relu_backward<<<gridSize, blockSize>>>(mat1.device_data, grad_output.device_data, grad_input.device_data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return grad_input;
 }
@@ -248,7 +277,7 @@ void Matrix::random(const unsigned long seed, const float min, const float max) 
         (rows + blockSize.y - 1) / blockSize.y
     );
 
-    fill_with_random<<<gridSize, blockSize>>>(data, seed, rows, cols, min, max);
+    fill_with_random<<<gridSize, blockSize>>>(device_data, seed, rows, cols, min, max);
     cudaDeviceSynchronize();
 };
 
@@ -263,7 +292,7 @@ Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, 1);
 
-    ce_loss<<<gridSize, blockSize>>>(mat1.data, labels.data, losses.data, mat1.rows, mat1.cols);
+    ce_loss<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, mat1.rows, mat1.cols);
     cudaDeviceSynchronize();
     return losses;
 };
@@ -287,7 +316,7 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
         (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(labels.data, softmax_output.data, softmax_grads.data, bsz, num_classes);
+    softmax_bwd<<<gridSize, blockSize>>>(labels.device_data, softmax_output.device_data, softmax_grads.device_data, bsz, num_classes);
     cudaDeviceSynchronize();
     return softmax_grads;
 }
