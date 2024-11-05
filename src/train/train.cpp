@@ -39,15 +39,16 @@ std::pair<Matrix, Matrix> prepare_batch(
     const int offset = batch_idx * current_bsz;
 
     // Prepare input
-    Matrix batch(current_bsz, feat_dim);
-    float* data = new float[current_bsz * feat_dim];
+    Matrix image_batch(current_bsz, feat_dim);
+    float* image_data = new float[current_bsz * feat_dim];
     for (int i = 0; i < current_bsz; ++i) {
         int idx = offset + i;
         for (int j = 0; j < feat_dim; ++j) {
-            data[i * feat_dim + j] = static_cast<float>(images[idx][j]) / 255.0f; // Normalize
+            image_data[i * feat_dim + j] = static_cast<float>(images[idx][j]) / 255.0f; // Normalize
         }
     }
-    batch.setData(data);
+    image_batch.setHostData(image_data);
+    image_batch.toDevice();
 
     // Prepare labels
     Matrix labels_batch(current_bsz, 1);
@@ -56,9 +57,10 @@ std::pair<Matrix, Matrix> prepare_batch(
         int idx = offset + i;
         labels_data[i] = static_cast<float>(labels[idx]);
     }
-    labels_batch.setData(labels_data);
+    labels_batch.setHostData(labels_data);
+    labels_batch.toDevice();
 
-    return std::make_pair(batch, labels_batch);
+    return std::make_pair(image_batch, labels_batch);
 }
 
 float get_val_loss(
