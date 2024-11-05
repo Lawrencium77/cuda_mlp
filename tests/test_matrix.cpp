@@ -1,5 +1,5 @@
 #include "matrix.h"
-#include "test_utils.h"
+#include <iostream>
 
 void testPrintOp(Matrix& input1, Matrix& input2, float* data, int bsz, int feats) {
     input1.printData("Input 1");

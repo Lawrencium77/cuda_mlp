@@ -1,7 +1,6 @@
 #include "config_reader.h"
 #include "model.h"
 #include "read_mnist.h"
-#include "test_utils.h"
 #include <filesystem>
 #include <algorithm>
 #include <random>

@@ -1,5 +1,5 @@
-#include "test_utils.h"
 #include "model.h"
+#include <iostream>
 
 void testSingleLayerForward(Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
