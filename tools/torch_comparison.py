@@ -18,14 +18,13 @@ LEARNING_RATE = 0.1
 class MLP(nn.Module):
     def __init__(self, feat_dim: int, num_layers: int) -> None:
         super(MLP, self).__init__()
-        layers = [
-            (
-                nn.Linear(feat_dim, feat_dim)
-                if i < num_layers - 1
-                else nn.Linear(feat_dim, 10)
-            )
-            for i in range(num_layers)
-        ]
+        layers = []
+        for i in range(num_layers):
+            if i < num_layers - 1:
+                layers.append(nn.Linear(feat_dim, feat_dim))
+                layers.append(nn.ReLU())
+            else:
+                layers.append(nn.Linear(feat_dim, 10))
         self.model = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
