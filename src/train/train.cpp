@@ -62,7 +62,7 @@ std::pair<Matrix, Matrix> prepare_batch(
     return std::make_pair(image_batch, labels_batch);
 }
 
-float get_val_loss(
+std::pair<float, float> get_val_stats(
   MLP& mlp,
   const std::vector<std::vector<unsigned char>>& val_images,
   const std::vector<unsigned char>& val_labels,
@@ -72,18 +72,20 @@ float get_val_loss(
   const int num_samples = val_images.size();
   const int num_batches = (num_samples + bsz - 1) / bsz;
   float total_loss = 0.0f;
+  float total_correct = 0.0f;
 
   for (int i = 0; i < num_batches; ++i) {
     const int current_bsz = std::min(bsz, num_samples - i * bsz);
     std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, feat_dim, i);
     Matrix output = mlp.forward(data_and_labels.first);
-    float loss = matsum(get_ce_loss(output, data_and_labels.second));
-    total_loss += loss;
+    std::pair<Matrix, Matrix> loss_and_preds = get_ce_loss_and_accuracy(output, data_and_labels.second);
+    total_loss += matsum(loss_and_preds.first);
+    total_correct += matsum(loss_and_preds.second);
   }
-  return total_loss / num_samples;
+  return std::make_pair(total_loss / num_samples, 100 * total_correct / num_samples);
 }
 
-std::pair<std::vector<float>, std::vector<float>> train_loop(
+std::vector<std::vector<float>> train_loop(
   MLP& mlp, 
   std::vector<std::vector<unsigned char>>& train_images,
   std::vector<unsigned char>& train_labels,             
@@ -98,6 +100,7 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
 ){
     std::vector<float> train_losses;
     std::vector<float> val_losses;
+    std::vector<float> val_accs;
 
     const int num_samples = train_images.size();
     const int num_batches_per_epoch = (num_samples + bsz - 1) / bsz;
@@ -132,15 +135,18 @@ std::pair<std::vector<float>, std::vector<float>> train_loop(
         }
 
         // Validate at end of each epoch
-        float val_loss = get_val_loss(mlp, val_images, val_labels, bsz, feat_dim);
-        val_losses.push_back(val_loss);
-        std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss << std::endl;
+        std::pair<float, float> val_loss_and_acc = get_val_stats(mlp, val_images, val_labels, bsz, feat_dim);
+        val_losses.push_back(val_loss_and_acc.first);
+        val_accs.push_back(val_loss_and_acc.second);
+        std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss_and_acc.first << std::endl;
+        std::cout << "Validation Acc after epoch " << epoch + 1 << ": " << val_loss_and_acc.second << "%" << std::endl;
     }
     
-    return std::make_pair(train_losses, val_losses);
+    std::vector<std::vector<float>> metrics = {train_losses, val_losses, val_accs};
+    return metrics;
 }
 
-void save_losses(const std::vector<float>& losses, const std::string filename) {
+void save_metric(const std::vector<float>& losses, const std::string filename) {
     std::ofstream loss_file(filename);
     for (const auto& l : losses) {
         loss_file << l << "\n";
@@ -176,7 +182,7 @@ int main(int argc, char* argv[]) {
     MLP mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
     mlp.randomise(0);
 
-    std::pair<std::vector<float>, std::vector<float>> losses = train_loop(
+    std::vector<std::vector<float>> metrics = train_loop(
       mlp, 
       train_images, 
       train_labels, 
@@ -190,8 +196,9 @@ int main(int argc, char* argv[]) {
       log_dir
     );
     
-    save_losses(losses.first, log_dir + "/train_losses.txt");
-    save_losses(losses.second, log_dir + "/val_losses.txt");
+    save_metric(metrics[0], log_dir + "/train_losses.txt");
+    save_metric(metrics[1], log_dir + "/val_losses.txt");
+    save_metric(metrics[2], log_dir + "/val_accs.txt");
 
     return 0;
 }

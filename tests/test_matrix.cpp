@@ -85,6 +85,21 @@ void testCESoftmaxBwd(Matrix& softmax_out, int bsz, int feats) {
     output.printData("CE Softmax Bwd");
 }
 
+void testAccuracy(Matrix& input, int num_classes, int bsz) {
+    Matrix labels(bsz, 1);
+
+    float* labels_data = new float[bsz];
+    for (int i = 0; i < bsz; i++){
+        labels_data[i] = 0;
+    }
+    labels.setHostData(labels_data);
+    labels.toDevice();
+
+    std::pair<Matrix, Matrix> loss_and_preds = get_ce_loss_and_accuracy(input, labels);
+    float accuracy = 100 * matsum(loss_and_preds.second) / bsz;
+    std::cout << "Accuracy: " << accuracy << "%\n" << std::endl;
+}
+
 void runTests() {
     int bsz = 2;
     int feats = 4;
@@ -112,6 +127,7 @@ void runTests() {
     Matrix normalised_values = testSoftmax(input1, data, bsz, feats);
     testCrossEntropy(normalised_values, feats, bsz);
     testCESoftmaxBwd(normalised_values, bsz, feats);
+    testAccuracy(normalised_values, feats, bsz);
 
     delete [] data;
 }

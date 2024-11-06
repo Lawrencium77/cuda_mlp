@@ -49,5 +49,6 @@ Matrix matmul(const Matrix& mat1, const Matrix& mat2);
 Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output);
 Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels);
 Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output);
+std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Matrix& labels);
 
 #endif
