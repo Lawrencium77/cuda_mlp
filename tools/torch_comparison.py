@@ -72,7 +72,6 @@ def train_loop(
     optimizer: optim.Optimizer,
     log_filepath: Path,
 ) -> None:
-    train_losses: List[float] = []
     with log_filepath.open("w") as f:
         for epoch in range(NUM_EPOCHS):
             model.train()
@@ -80,7 +79,6 @@ def train_loop(
                 optimizer.zero_grad()
                 outputs = model(images)
                 loss = criterion(outputs, labels)
-                train_losses.append(loss.item())
                 f.write(f"{loss.item()}\n")
                 loss.backward()
                 optimizer.step()
