@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import torch
 import torch.nn as nn
@@ -32,19 +32,41 @@ class MLP(nn.Module):
         return self.model(x.view(-1, FEAT_DIM))
 
 
-def get_dataloader(data_dir: Path) -> DataLoader:
+def get_dataloaders(data_dir: Path) -> Tuple[DataLoader, DataLoader]:
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
     )
     train_data = datasets.MNIST(
         data_dir, train=True, download=False, transform=transform
     )
+    val_data = datasets.MNIST(
+        data_dir, train=False, download=False, transform=transform
+    )
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-    return train_loader
+    val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
+    return train_loader, val_loader
 
+
+def validate(
+    val_loader: DataLoader,
+    model: nn.Module,
+    criterion: nn.Module,
+    epoch: int,
+):
+    model.eval()
+    val_loss = 0.0
+    with torch.no_grad():
+        for images, labels in val_loader:
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+    
+    val_loss /= len(val_loader)
+    print(f"Epoch {epoch+1}/{NUM_EPOCHS}, Val Loss: {val_loss:.4f}")
 
 def train_loop(
     train_loader: DataLoader,
+    val_loader: DataLoader,
     model: nn.Module,
     criterion: nn.Module,
     optimizer: optim.Optimizer,
@@ -53,6 +75,7 @@ def train_loop(
     train_losses: List[float] = []
     with log_filepath.open("w") as f:
         for epoch in range(NUM_EPOCHS):
+            model.train()
             for images, labels in train_loader:
                 optimizer.zero_grad()
                 outputs = model(images)
@@ -61,16 +84,17 @@ def train_loop(
                 f.write(f"{loss.item()}\n")
                 loss.backward()
                 optimizer.step()
-            print(f"Epoch {epoch+1}/{NUM_EPOCHS}, Loss: {loss.item():.4f}")
+
+            validate(val_loader, model, criterion, epoch)
 
 
 def main(data_dir: Path, log_file: Path) -> None:
-    train_loader = get_dataloader(data_dir)
+    train_loader, val_loader = get_dataloaders(data_dir)
     model = MLP(FEAT_DIM, NUM_LAYERS)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
-    train_loop(train_loader, model, criterion, optimizer, log_file)
+    train_loop(train_loader, val_loader, model, criterion, optimizer, log_file)
     print("Training complete.")
 
 
