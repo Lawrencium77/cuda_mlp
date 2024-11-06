@@ -166,6 +166,27 @@ __global__ void ce_loss(const float *preds, const float *labels, float *losses, 
     }
 }
 
+__global__ void ce_loss_and_predictions(const float *preds, const float *labels, float *losses, float *correct_predictions, const int rows, const int cols, const float epsilon) {
+    int row = threadIdx.y;
+
+    if (row < rows) {
+        int label = (int)labels[row];
+        float pred = preds[row * cols + label];
+        losses[row] = -1 * logf(pred + epsilon);
+
+        int predicted_label = 0;
+        float max_prob = preds[row * cols];
+        for (int col = 1; col < cols; ++col) {
+            float current_prob = preds[row * cols + col];
+            if (current_prob > max_prob) {
+                max_prob = current_prob;
+                predicted_label = col;
+            }
+        }
+        correct_predictions[row] = (predicted_label == label) ? 1.0f : 0.0f;
+    }
+}
+
 __global__ void softmax_bwd(const float* labels, const float* softmax_outputs, float* softmax_grads, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;

@@ -320,3 +320,20 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
     cudaDeviceSynchronize();
     return softmax_grads;
 }
+
+std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Matrix& labels) {
+    if (mat1.rows != labels.rows) {
+        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
+        exit(1);
+    }
+
+    Matrix losses = Matrix(mat1.rows, 1);
+    Matrix predictions = Matrix(mat1.rows, 1);
+
+    dim3 blockSize(1, 1024);
+    dim3 gridSize(1, 1);
+
+    ce_loss_and_predictions<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, predictions.device_data, mat1.rows, mat1.cols);
+    cudaDeviceSynchronize();
+    return std::make_pair(losses, predictions);
+};

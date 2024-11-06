@@ -17,6 +17,7 @@ __global__ void matrix_relu(const float *a, float* b, const int rows, const int 
 __global__ void matrix_relu_backward(const float *a, const float *grad_output, float *grad_input, const int rows, const int cols);
 __global__ void fill_with_random(float *a, const unsigned long seed, const int rows, const int cols, const float min, const float max);
 __global__ void ce_loss(const float *preds, const float *labels, float *losses, const int rows, const int cols, const float epsilon = 1e-7);
+__global__ void ce_loss_and_predictions(const float *preds, const float *labels, float *losses, float *correct_predictions, const int rows, const int cols, const float epsilon = 1e-7);
 __global__ void softmax_bwd(const float* labels, const float* softmax_outputs, float* softmax_grads, const int rows, const int cols);
 #endif
 #endif
