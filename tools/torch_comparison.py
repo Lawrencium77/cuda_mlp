@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 from typing import List
 
@@ -31,12 +32,12 @@ class MLP(nn.Module):
         return self.model(x.view(-1, FEAT_DIM))
 
 
-def get_dataloader() -> DataLoader:
+def get_dataloader(data_dir: Path) -> DataLoader:
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
     )
     train_data = datasets.MNIST(
-        Path("./mnist_data"), train=True, download=False, transform=transform
+        data_dir, train=True, download=False, transform=transform
     )
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
     return train_loader
@@ -63,15 +64,20 @@ def train_loop(
             print(f"Epoch {epoch+1}/{NUM_EPOCHS}, Loss: {loss.item():.4f}")
 
 
-def main() -> None:
-    train_loader = get_dataloader()
+def main(data_dir: Path, log_file: Path) -> None:
+    train_loader = get_dataloader(data_dir)
     model = MLP(FEAT_DIM, NUM_LAYERS)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
-    train_loop(train_loader, model, criterion, optimizer, Path("train_losses.txt"))
+    train_loop(train_loader, model, criterion, optimizer, log_file)
     print("Training complete.")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Train an MLP on MNIST data.")
+    parser.add_argument("--data_dir", type=Path, required=True, help="Path to the MNIST data directory")
+    parser.add_argument("--log_file", type=Path, required=True, help="File path to save the training losses")
+    
+    args = parser.parse_args()
+    main(args.data_dir, args.log_file)

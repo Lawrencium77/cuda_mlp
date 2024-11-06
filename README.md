@@ -3,6 +3,7 @@ Training an MLP on MNIST in raw CUDA/C++.
 
 ## Dependencies
 Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/).
+`wget` is required to download MNIST.
 
 ## TODO
 
