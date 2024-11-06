@@ -32,9 +32,7 @@ class MLP(nn.Module):
 
 
 def get_dataloaders(data_dir: Path) -> Tuple[DataLoader, DataLoader]:
-    transform = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
-    )
+    transform = transform = transforms.ToTensor() # Normalise between 0 and 1
     train_data = datasets.MNIST(
         data_dir, train=True, download=False, transform=transform
     )
