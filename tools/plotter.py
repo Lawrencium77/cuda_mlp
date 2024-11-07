@@ -1,11 +1,18 @@
 """
 Short script to plot training/val loss/accuracy from a log file.
-Example usage:
+Example usages:
     python3 tools/plotter.py ./log/train_losses.txt "Training Loss" "Steps" "" 10
+    python3 tools/plotter.py ./log/train_losses.txt \
+        "Training Loss" \
+        "Steps" \
+        "" \
+        10 \
+        --input_file2 losses.txt \
+        --label1 "My Implementation" \
+        --label2 "PyTorch"
 """
 
 import argparse
-
 import matplotlib.pyplot as plt
 
 
@@ -15,7 +22,13 @@ def get_args():
         "input_file", type=str, help="Path to the input file containing loss values"
     )
     parser.add_argument(
-        "y_axis_label", type=str, help="Label for the x-axis (e.g., 'Train Loss')"
+        "--input_file2",
+        type=str,
+        default=None,
+        help="Path to the second input file containing loss values (optional)",
+    )
+    parser.add_argument(
+        "y_axis_label", type=str, help="Label for the y-axis (e.g., 'Loss')"
     )
     parser.add_argument(
         "x_axis_label", type=str, help="Label for the x-axis (e.g., 'Steps')"
@@ -30,11 +43,26 @@ def get_args():
     parser.add_argument(
         "plot_every", type=int, nargs="?", default=1, help="Plot every N steps"
     )
+    parser.add_argument(
+        "--label1",
+        type=str,
+        default="Curve 1",
+        help="Legend label for the first curve (default: 'Curve 1')",
+    )
+    parser.add_argument(
+        "--label2",
+        type=str,
+        default="Curve 2",
+        help="Legend label for the second curve if provided (default: 'Curve 2')",
+    )
     return parser.parse_args()
 
 
-def plot_values(args, metrics):
-    plt.plot(metrics, marker=None, linestyle="-")
+def plot_values(args, metrics, metrics2=None):
+    plt.plot(metrics, marker=None, linestyle="-", label=args.label1)
+    if metrics2 is not None:
+        plt.plot(metrics2, marker=None, linestyle="-", label=args.label2)
+        plt.legend()
     plt.xlabel(args.x_axis_label)
     plt.ylabel(args.y_axis_label)
     plt.grid(True)
@@ -50,7 +78,15 @@ def main():
         metrics = [float(line.strip()) for line in f]
         if args.plot_every > 1:
             metrics = metrics[:: args.plot_every]
-    plot_values(args, metrics)
+
+    metrics2 = None
+    if args.input_file2:
+        with open(args.input_file2, "r") as f:
+            metrics2 = [float(line.strip()) for line in f]
+            if args.plot_every > 1:
+                metrics2 = metrics2[:: args.plot_every]
+
+    plot_values(args, metrics, metrics2)
 
 
 if __name__ == "__main__":
