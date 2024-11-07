@@ -1,31 +1,21 @@
 """
-Short script to plot training/val loss/accuracy from a log file.
+Script to plot training/val loss/accuracy from log file(s).
+
 Example usages:
-    python3 tools/plotter.py ./log/train_losses.txt "Training Loss" "Steps" "" 10
-    python3 tools/plotter.py ./log/train_losses.txt \
-        "Training Loss" \
-        "Steps" \
-        "" \
-        10 \
-        --input_file2 losses.txt \
-        --label1 "My Implementation" \
-        --label2 "PyTorch"
+    python3 tools/plotter.py ./log/train_losses.txt "Training Loss" "Steps" --plot_every 10
+    python3 tools/plotter.py ./log/train_losses.txt "Training Loss" "Steps" --plot_every 10 \
+        --input_file2 losses.txt --label1 "My Implementation" --label2 "PyTorch"
 """
 
 import argparse
 import matplotlib.pyplot as plt
+from typing import List, Optional
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot training loss from a file.")
     parser.add_argument(
         "input_file", type=str, help="Path to the input file containing loss values"
-    )
-    parser.add_argument(
-        "--input_file2",
-        type=str,
-        default=None,
-        help="Path to the second input file containing loss values (optional)",
     )
     parser.add_argument(
         "y_axis_label", type=str, help="Label for the y-axis (e.g., 'Loss')"
@@ -34,14 +24,22 @@ def get_args():
         "x_axis_label", type=str, help="Label for the x-axis (e.g., 'Steps')"
     )
     parser.add_argument(
-        "output_file",
+        "--output_file",
         type=str,
-        nargs="?",
         default="",
-        help="Filepath to save the plot to",
+        help="Filepath to save the plot to (optional)",
     )
     parser.add_argument(
-        "plot_every", type=int, nargs="?", default=1, help="Plot every N steps"
+        "--plot_every",
+        type=int,
+        default=1,
+        help="Plot every N steps (default: 1)",
+    )
+    parser.add_argument(
+        "--input_file2",
+        type=str,
+        default=None,
+        help="Path to the second input file containing loss values (optional)",
     )
     parser.add_argument(
         "--label1",
@@ -55,36 +53,51 @@ def get_args():
         default="Curve 2",
         help="Legend label for the second curve if provided (default: 'Curve 2')",
     )
+    parser.add_argument(
+        "--title",
+        type=str,
+        default="",
+        help="Title for the plot (optional)",
+    )
     return parser.parse_args()
 
 
-def plot_values(args, metrics, metrics2=None):
-    plt.plot(metrics, marker=None, linestyle="-", label=args.label1)
+def read_metrics(file_path: str, plot_every: int) -> List[float]:
+    with open(file_path, "r") as f:
+        metrics = [float(line.strip()) for line in f]
+    if plot_every > 1:
+        metrics = metrics[::plot_every]
+    return metrics
+
+
+def plot_values(
+    args: argparse.Namespace,
+    metrics: List[float],
+    metrics2: Optional[List[float]] = None,
+) -> None:
+    plt.plot(metrics, linestyle="-", label=args.label1)
     if metrics2 is not None:
-        plt.plot(metrics2, marker=None, linestyle="-", label=args.label2)
+        plt.plot(metrics2, linestyle="-", label=args.label2)
         plt.legend()
     plt.xlabel(args.x_axis_label)
     plt.ylabel(args.y_axis_label)
+    if args.title:
+        plt.title(args.title)
     plt.grid(True)
-    plt.show()
+    plt.tight_layout()
 
     if args.output_file:
         plt.savefig(args.output_file)
+    plt.show()
 
 
-def main():
+def main() -> None:
     args = get_args()
-    with open(args.input_file, "r") as f:
-        metrics = [float(line.strip()) for line in f]
-        if args.plot_every > 1:
-            metrics = metrics[:: args.plot_every]
+    metrics = read_metrics(args.input_file, args.plot_every)
 
     metrics2 = None
     if args.input_file2:
-        with open(args.input_file2, "r") as f:
-            metrics2 = [float(line.strip()) for line in f]
-            if args.plot_every > 1:
-                metrics2 = metrics2[:: args.plot_every]
+        metrics2 = read_metrics(args.input_file2, args.plot_every)
 
     plot_values(args, metrics, metrics2)
 
