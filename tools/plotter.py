@@ -5,7 +5,6 @@ Example usage:
 """
 
 import argparse
-
 import matplotlib.pyplot as plt
 
 
@@ -15,7 +14,13 @@ def get_args():
         "input_file", type=str, help="Path to the input file containing loss values"
     )
     parser.add_argument(
-        "y_axis_label", type=str, help="Label for the x-axis (e.g., 'Train Loss')"
+        "--input_file2",
+        type=str,
+        default=None,
+        help="Path to the second input file containing loss values (optional)",
+    )
+    parser.add_argument(
+        "y_axis_label", type=str, help="Label for the y-axis (e.g., 'Loss')"
     )
     parser.add_argument(
         "x_axis_label", type=str, help="Label for the x-axis (e.g., 'Steps')"
@@ -33,8 +38,11 @@ def get_args():
     return parser.parse_args()
 
 
-def plot_values(args, metrics):
-    plt.plot(metrics, marker=None, linestyle="-")
+def plot_values(args, metrics, metrics2=None):
+    plt.plot(metrics, marker=None, linestyle="-", label="Curve 1")
+    if metrics2 is not None:
+        plt.plot(metrics2, marker=None, linestyle="-", label="Curve 2")
+        plt.legend()
     plt.xlabel(args.x_axis_label)
     plt.ylabel(args.y_axis_label)
     plt.grid(True)
@@ -50,7 +58,15 @@ def main():
         metrics = [float(line.strip()) for line in f]
         if args.plot_every > 1:
             metrics = metrics[:: args.plot_every]
-    plot_values(args, metrics)
+
+    metrics2 = None
+    if args.input_file2:
+        with open(args.input_file2, "r") as f:
+            metrics2 = [float(line.strip()) for line in f]
+            if args.plot_every > 1:
+                metrics2 = metrics2[:: args.plot_every]
+
+    plot_values(args, metrics, metrics2)
 
 
 if __name__ == "__main__":
