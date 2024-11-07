@@ -1,7 +1,15 @@
 """
 Short script to plot training/val loss/accuracy from a log file.
-Example usage:
+Example usages:
     python3 tools/plotter.py ./log/train_losses.txt "Training Loss" "Steps" "" 10
+    python3 tools/plotter.py ./log/train_losses.txt \
+        "Training Loss" \
+        "Steps" \
+        "" \
+        10 \
+        --input_file2 losses.txt \
+        --label1 "My Implementation" \
+        --label2 "PyTorch"
 """
 
 import argparse
@@ -35,13 +43,25 @@ def get_args():
     parser.add_argument(
         "plot_every", type=int, nargs="?", default=1, help="Plot every N steps"
     )
+    parser.add_argument(
+        "--label1",
+        type=str,
+        default="Curve 1",
+        help="Legend label for the first curve (default: 'Curve 1')",
+    )
+    parser.add_argument(
+        "--label2",
+        type=str,
+        default="Curve 2",
+        help="Legend label for the second curve if provided (default: 'Curve 2')",
+    )
     return parser.parse_args()
 
 
 def plot_values(args, metrics, metrics2=None):
-    plt.plot(metrics, marker=None, linestyle="-", label="Curve 1")
+    plt.plot(metrics, marker=None, linestyle="-", label=args.label1)
     if metrics2 is not None:
-        plt.plot(metrics2, marker=None, linestyle="-", label="Curve 2")
+        plt.plot(metrics2, marker=None, linestyle="-", label=args.label2)
         plt.legend()
     plt.xlabel(args.x_axis_label)
     plt.ylabel(args.y_axis_label)
