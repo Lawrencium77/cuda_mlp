@@ -8,8 +8,10 @@ Example usages:
 """
 
 import argparse
-import matplotlib.pyplot as plt
 from typing import List, Optional
+
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def get_args() -> argparse.Namespace:
@@ -80,21 +82,40 @@ def plot_values(
     metrics: List[float],
     metrics2: Optional[List[float]] = None,
 ) -> None:
-    plt.plot(metrics, linestyle="-", label=args.label1)
+    plt.figure(figsize=(10, 6))
+    steps = list(range(0, len(metrics) * args.plot_every, args.plot_every))
+
+    sns.set(style="darkgrid")
+    sns.lineplot(
+        x=steps, y=metrics, label=args.label1, color="steelblue", linewidth=1.5
+    )
+
     if metrics2 is not None:
-        plt.plot(metrics2, linestyle="-", label=args.label2)
-        plt.legend()
-    plt.xlabel(args.x_axis_label)
-    plt.ylabel(args.y_axis_label)
+        steps2 = list(range(0, len(metrics2) * args.plot_every, args.plot_every))
+        sns.lineplot(
+            x=steps2, y=metrics2, label=args.label2, color="#EE8C00", linewidth=1.5
+        )
+
+    plt.xlabel(args.x_axis_label, fontsize=14)
+    plt.ylabel(args.y_axis_label, fontsize=14)
+
     if args.log_scale:
         plt.yscale("log")
+
     if args.title:
-        plt.title(args.title)
-    plt.grid(True)
+        plt.title(args.title, fontsize=16, weight="bold")
+
+    plt.legend(fontsize=12, loc="upper right", frameon=True, shadow=True)
+
+    plt.grid(True, which="major", color="white", linestyle="-", linewidth=0.7)
+    plt.minorticks_off()
+
     plt.tight_layout()
+    sns.despine()
 
     if args.output_file:
-        plt.savefig(args.output_file)
+        plt.savefig(args.output_file, dpi=300, bbox_inches="tight")
+
     plt.show()
 
 
