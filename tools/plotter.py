@@ -59,6 +59,11 @@ def get_args() -> argparse.Namespace:
         default="",
         help="Title for the plot (optional)",
     )
+    parser.add_argument(
+        "--log_scale",
+        action="store_true",
+        help="Plot the y-axis on a logarithmic scale",
+    )
     return parser.parse_args()
 
 
@@ -81,6 +86,8 @@ def plot_values(
         plt.legend()
     plt.xlabel(args.x_axis_label)
     plt.ylabel(args.y_axis_label)
+    if args.log_scale:
+        plt.yscale("log")
     if args.title:
         plt.title(args.title)
     plt.grid(True)
