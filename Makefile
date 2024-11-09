@@ -12,7 +12,7 @@ BUILD_DIR = build
 
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
 MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
-MODEL_SRC_FILES = $(SRC_DIR)/network/model.cpp
+MODEL_SRC_FILES = $(SRC_DIR)/model/model.cpp
 TRAINING_SRC_FILES = $(SRC_DIR)/train/config_reader.cpp $(SRC_DIR)/train/train.cpp
 
 MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
