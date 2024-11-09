@@ -32,7 +32,7 @@ std::pair<Matrix, Matrix> prepare_batch(
   const std::vector<std::vector<unsigned char> >& images,
   const std::vector<unsigned char>& labels,
   const int current_bsz,
-  const int feat_dim, 
+  const int feat_dim,
   const int batch_idx
 ) {
     const int offset = batch_idx * current_bsz;
@@ -86,9 +86,9 @@ std::pair<float, float> get_val_stats(
 }
 
 std::vector<std::vector<float>> train_loop(
-  MLP& mlp, 
+  MLP& mlp,
   std::vector<std::vector<unsigned char>>& train_images,
-  std::vector<unsigned char>& train_labels,             
+  std::vector<unsigned char>& train_labels,
   const std::vector<std::vector<unsigned char>>& val_images,
   const std::vector<unsigned char>& val_labels,
   const int num_epochs,
@@ -122,7 +122,8 @@ std::vector<std::vector<float>> train_loop(
             Matrix output = mlp.forward(data_and_labels.first);
             mlp.backward(data_and_labels.second, output);
             mlp.update_weights(lr);
-            
+
+            cudaDeviceSynchronize();
             float loss = matsum(get_ce_loss(output, data_and_labels.second)) / current_bsz;
             train_losses.push_back(loss);
 
@@ -141,7 +142,7 @@ std::vector<std::vector<float>> train_loop(
         std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss_and_acc.first << std::endl;
         std::cout << "Validation Acc after epoch " << epoch + 1 << ": " << val_loss_and_acc.second << "%" << std::endl;
     }
-    
+
     std::vector<std::vector<float>> metrics = {train_losses, val_losses, val_accs};
     return metrics;
 }
@@ -170,31 +171,32 @@ int main(int argc, char* argv[]) {
     const std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
     const std::string val_label_file = data_dir + "/t10k-labels-idx1-ubyte";
 
-    // Load all data into memory. 
+    // Load all data into memory.
     std::vector<std::vector<unsigned char> > train_images = read_mnist_images(train_image_file);
     std::vector<std::vector<unsigned char> > val_images = read_mnist_images(val_image_file);
     std::vector<unsigned char> train_labels = read_mnist_labels(train_label_file);
     std::vector<unsigned char> val_labels = read_mnist_labels(val_label_file);
-    
+
     const std::string log_dir = config["log_dir"];
     std::filesystem::create_directory(log_dir);
 
     MLP mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
     mlp.randomise(0);
+    cudaDeviceSynchronize();
 
     std::vector<std::vector<float>> metrics = train_loop(
-      mlp, 
-      train_images, 
-      train_labels, 
-      val_images, 
-      val_labels, 
+      mlp,
+      train_images,
+      train_labels,
+      val_images,
+      val_labels,
       std::stoi(config["num_epochs"]),
-      std::stoi(config["bsz"]), 
-      std::stoi(config["feat_dim"]), 
-      std::stof(config["learning_rate"]), 
+      std::stoi(config["bsz"]),
+      std::stoi(config["feat_dim"]),
+      std::stof(config["learning_rate"]),
       std::stoi(config["verbose"])
     );
-    
+
     save_metric(metrics[0], log_dir + "/train_losses.txt");
     save_metric(metrics[1], log_dir + "/val_losses.txt");
     save_metric(metrics[2], log_dir + "/val_accs.txt");
