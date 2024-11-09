@@ -10,10 +10,8 @@ Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/)
 ## TODO
 
 * Linting.
-* Add throughput tests. Try removing unnecessary synchronisations.
-* Consider all of the synchronisation statements:
-     Are these slowing me down loads? Do some profiling.
-     Will it require a PyTorch-style caching allocator?
+* PyTorch-style caching allocator.
+* Multiple CUDA streams.
 * Proper tests.
 * Faster kernels, e.g. tiled matmuls.
 * Add more detail to the comparisons plot.
