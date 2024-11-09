@@ -95,8 +95,7 @@ std::vector<std::vector<float>> train_loop(
   const int bsz,
   const int feat_dim,
   const float lr,
-  const bool verbose,
-  const std::string& log_dir
+  const bool verbose
 ){
     std::vector<float> train_losses;
     std::vector<float> val_losses;
@@ -193,8 +192,7 @@ int main(int argc, char* argv[]) {
       std::stoi(config["bsz"]), 
       std::stoi(config["feat_dim"]), 
       std::stof(config["learning_rate"]), 
-      std::stoi(config["verbose"]),
-      log_dir
+      std::stoi(config["verbose"])
     );
     
     save_metric(metrics[0], log_dir + "/train_losses.txt");
