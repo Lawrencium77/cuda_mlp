@@ -121,6 +121,9 @@ std::vector<std::vector<float>> train_loop(
             );
 
             Matrix output = mlp.forward(data_and_labels.first);
+            mlp.backward(data_and_labels.second, output);
+            mlp.update_weights(lr);
+            
             float loss = matsum(get_ce_loss(output, data_and_labels.second)) / current_bsz;
             train_losses.push_back(loss);
 
@@ -130,8 +133,6 @@ std::vector<std::vector<float>> train_loop(
                           << "Loss: " << loss << std::endl;
             }
 
-            mlp.backward(data_and_labels.second, output);
-            mlp.update_weights(lr);
         }
 
         // Validate at end of each epoch
