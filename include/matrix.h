@@ -19,13 +19,15 @@ struct Matrix {
   Matrix(Matrix&& other);
   Matrix(const Matrix& other) = delete;
 
+  Matrix& operator=(Matrix&& other);
+  Matrix& operator=(const Matrix& other);
+
   void toDevice();
   void toHost();
 
   void setHostData(float *data);
 
   void random(const unsigned long seed, const float min, const float max);
-  Matrix& operator=(const Matrix& other);
 
   void printData(std::string message = "");
 };

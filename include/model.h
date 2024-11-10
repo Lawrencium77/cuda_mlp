@@ -11,8 +11,8 @@ struct SingleLayerPerceptron {
     const bool use_activation;
 
     SingleLayerPerceptron(const int dim_out, const int dim_in, const bool use_activation = true);
-    Matrix& forward(const Matrix& input);
-    Matrix backward(const Matrix& grad);
+    Matrix& forward(Matrix& input);
+    Matrix backward(Matrix& grad);
     void update_weights(const float lr);
     void randomise(const unsigned long seed = 0);
 };
@@ -26,7 +26,7 @@ struct MLP {
     std::vector<SingleLayerPerceptron> layers;
 
     MLP(int feat_dim, int num_layers);
-    Matrix forward(const Matrix& input);
+    Matrix forward(Matrix& input);
     void backward(const Matrix& labels, const Matrix& preds);
     void update_weights(const float lr);
     void randomise(const unsigned long seed = 0);

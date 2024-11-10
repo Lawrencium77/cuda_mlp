@@ -36,6 +36,26 @@ Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), numel(other
     other.device_data = nullptr;
 }
 
+Matrix& Matrix::operator=(Matrix&& other) {
+    if (this != &other) {
+        delete[] host_data;
+        cudaFree(device_data);
+
+        rows = other.rows;
+        cols = other.cols;
+        numel = other.numel;
+        host_data = other.host_data;
+        device_data = other.device_data;
+
+        other.rows = 0;
+        other.cols = 0;
+        other.numel = 0;
+        other.host_data = nullptr;
+        other.device_data = nullptr;
+    }
+    return *this;
+}
+
 Matrix& Matrix::operator=(const Matrix& other) {
     if (this != &other) {
         // Deallocate and reallocate resources since we can't assume numel == other.numel
