@@ -4,14 +4,14 @@
 void testSingleLayerForward(Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
-  Matrix output = slp.forward(input);
+  Matrix& output = slp.forward(input);
   output.printData("SLP Output");
 }
 
 void testSingleLayerBackward(Matrix& input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
-  Matrix output = slp.forward(input);
+  Matrix& output = slp.forward(input);
   Matrix grad = slp.backward(output);
   grad.printData("SLP Gradient");
 }
@@ -50,7 +50,7 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
 
   // Examine first layer gradient
   float* data = new float[feat_dim * feat_dim];
-  Matrix grads = mlp.layers[0].grads;
+  Matrix& grads = mlp.layers[0].grads;
   grads.printData("First layer gradients");
 
   // Update weights

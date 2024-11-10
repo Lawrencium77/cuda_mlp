@@ -1,7 +1,6 @@
-GCC = g++
 NVCC = nvcc
 
-CFLAGS = -I./include
+CFLAGS = -I./include -std=c++20
 ifeq ($(DEBUG), 1)
     CFLAGS += -g
 endif
@@ -22,7 +21,7 @@ MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
 MODEL_OUTPUT = $(BUILD_DIR)/test_model
 TRAINING_OUTPUT = $(BUILD_DIR)/train
 
-all: $(MATRIX_OUTPUT) $(DATA_OUTPUT) $(MODEL_OUTPUT) $(TRAINING_OUTPUT)
+all: $(MATRIX_OUTPUT) $(MODEL_OUTPUT) $(TRAINING_OUTPUT)
 
 $(MATRIX_OUTPUT): $(MATRIX_SRC_FILES) $(MATRIX_TEST_FILE)
 	mkdir -p $(BUILD_DIR)

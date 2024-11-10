@@ -14,17 +14,21 @@ void SingleLayerPerceptron::randomise(const unsigned long seed) {
   weights.random(seed, min, max);
 }
 
-Matrix SingleLayerPerceptron::forward(const Matrix& input) {
+Matrix& SingleLayerPerceptron::forward(Matrix& input) {
   // weights: dim_in x dim_out
   // input: bsz x dim_in
   // output: bsz x dim_out
-  inputs = input;
-  const Matrix Z = matmul(input, weights);
-  activations = use_activation ? relu(Z) : Z;
+  inputs = input; // Invokes a copy
+  Matrix Z = matmul(inputs, weights);
+  if (use_activation) {
+    activations = relu(Z);
+  } else {
+    activations = std::move(Z);
+  }
   return activations;
 }
 
-Matrix SingleLayerPerceptron::backward(const Matrix& grad) {
+Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   // weights: dim_in x dim_out
   // grad: bsz x dim_out
   // input_grads: bsz x dim_in
@@ -36,9 +40,9 @@ Matrix SingleLayerPerceptron::backward(const Matrix& grad) {
   
   if (use_activation) {
       Matrix relu_grad = relu_backward(activations, grad);
-      delta = relu_grad;
+      delta = std::move(relu_grad);
   } else {
-    delta = grad;
+    delta = std::move(grad);
   }
   
   grads = matmul(inputs_tranpose, delta) / (float)bsz;
@@ -60,13 +64,14 @@ MLP::MLP(int feat_dim, int num_layers) : feat_dim(feat_dim), num_layers(num_laye
     layers.push_back(SingleLayerPerceptron(output_classes, feat_dim, false));
 }
 
-Matrix MLP::forward(const Matrix& input){
-    Matrix y = input;
-    for (int i = 0; i < num_layers; ++i) {
-        y = layers[i].forward(y);
+Matrix MLP::forward(Matrix& input){
+    Matrix* y = &layers[0].forward(input);
+    for (int i = 1; i < num_layers; ++i) {
+        y = &layers[i].forward(*y);
     }
-    y = layers[num_layers].forward(y); // Classification head
-    return softmax(y);
+    y = &layers[num_layers].forward(*y); // Classification head
+    Matrix result = softmax(*y);
+    return result;
 }
 
 void MLP::backward(const Matrix& labels, const Matrix& preds){

@@ -59,7 +59,7 @@ std::pair<Matrix, Matrix> prepare_batch(
     labels_batch.setHostData(labels_data);
     labels_batch.toDevice();
 
-    return std::make_pair(image_batch, labels_batch);
+    return std::make_pair(std::move(image_batch), std::move(labels_batch));
 }
 
 std::pair<float, float> get_val_stats(

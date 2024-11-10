@@ -12,10 +12,15 @@ struct Matrix {
 
   Matrix(); 
   Matrix(int rows, int cols);
-
   ~Matrix();
+  
+  // Use move constructor instead of copy constructor
+  // Shouldn't matter too much since the compiler should use RVO
+  Matrix(Matrix&& other);
+  Matrix(const Matrix& other) = delete;
 
-  Matrix(const Matrix& other);
+  Matrix& operator=(Matrix&& other);
+  Matrix& operator=(const Matrix& other);
 
   void toDevice();
   void toHost();
@@ -23,7 +28,6 @@ struct Matrix {
   void setHostData(float *data);
 
   void random(const unsigned long seed, const float min, const float max);
-  Matrix& operator=(const Matrix& other);
 
   void printData(std::string message = "");
 };
