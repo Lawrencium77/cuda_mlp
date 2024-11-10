@@ -61,8 +61,8 @@ MLP::MLP(int feat_dim, int num_layers) : feat_dim(feat_dim), num_layers(num_laye
 }
 
 Matrix MLP::forward(const Matrix& input){
-    Matrix y = input;
-    for (int i = 0; i < num_layers; ++i) {
+    Matrix y = layers[0].forward(y);
+    for (int i = 1; i < num_layers; ++i) {
         y = layers[i].forward(y);
     }
     y = layers[num_layers].forward(y); // Classification head
