@@ -11,7 +11,7 @@ struct SingleLayerPerceptron {
     const bool use_activation;
 
     SingleLayerPerceptron(const int dim_out, const int dim_in, const bool use_activation = true);
-    Matrix forward(const Matrix& input);
+    Matrix& forward(const Matrix& input);
     Matrix backward(const Matrix& grad);
     void update_weights(const float lr);
     void randomise(const unsigned long seed = 0);

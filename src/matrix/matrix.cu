@@ -27,12 +27,13 @@ void Matrix::setHostData(float *data) {
     host_data = data;
 }
 
-Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), numel(other.numel) {
-    host_data = new float[numel];
-    std::copy(other.host_data, other.host_data + numel, host_data);
-
-    cudaMalloc(&device_data, numel * sizeof(float));
-    cudaMemcpy(device_data, other.device_data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
+Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), numel(other.numel), host_data(other.host_data), device_data(other.device_data)
+{
+    other.rows = 0;
+    other.cols = 0;
+    other.numel = 0;
+    other.host_data = nullptr;
+    other.device_data = nullptr;
 }
 
 Matrix& Matrix::operator=(const Matrix& other) {
@@ -321,5 +322,5 @@ std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Mat
     dim3 gridSize(1, 1);
 
     ce_loss_and_predictions<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, predictions.device_data, mat1.rows, mat1.cols);
-    return std::make_pair(losses, predictions);
+    return std::make_pair(std::move(losses), std::move(predictions));
 };

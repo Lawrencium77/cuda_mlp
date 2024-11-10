@@ -14,13 +14,17 @@ void SingleLayerPerceptron::randomise(const unsigned long seed) {
   weights.random(seed, min, max);
 }
 
-Matrix SingleLayerPerceptron::forward(const Matrix& input) {
+Matrix& SingleLayerPerceptron::forward(const Matrix& input) {
   // weights: dim_in x dim_out
   // input: bsz x dim_in
   // output: bsz x dim_out
   inputs = input;
-  const Matrix Z = matmul(input, weights);
-  activations = use_activation ? relu(Z) : Z;
+  Matrix Z = matmul(input, weights);
+  if (use_activation) {
+    activations = relu(Z);
+  } else {
+    activations = Z;
+  }
   return activations;
 }
 
@@ -61,7 +65,8 @@ MLP::MLP(int feat_dim, int num_layers) : feat_dim(feat_dim), num_layers(num_laye
 }
 
 Matrix MLP::forward(const Matrix& input){
-    Matrix y = layers[0].forward(input);
+    Matrix y;
+    y = layers[0].forward(input);
     for (int i = 1; i < num_layers; ++i) {
         y = layers[i].forward(y);
     }

@@ -12,10 +12,10 @@ struct Matrix {
 
   Matrix(); 
   Matrix(int rows, int cols);
-
   ~Matrix();
-
-  Matrix(const Matrix& other);
+  
+  Matrix(Matrix&& other);
+  Matrix(const Matrix& other) = delete;
 
   void toDevice();
   void toHost();
