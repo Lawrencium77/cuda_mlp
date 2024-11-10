@@ -1,4 +1,3 @@
-GCC = g++
 NVCC = nvcc
 
 CFLAGS = -I./include
