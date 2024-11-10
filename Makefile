@@ -1,6 +1,6 @@
 NVCC = nvcc
 
-CFLAGS = -I./include
+CFLAGS = -I./include -std=c++20
 ifeq ($(DEBUG), 1)
     CFLAGS += -g
 endif

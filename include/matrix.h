@@ -14,6 +14,8 @@ struct Matrix {
   Matrix(int rows, int cols);
   ~Matrix();
   
+  // Use move constructor instead of copy constructor
+  // Shouldn't matter too much since the compiler should use RVO
   Matrix(Matrix&& other);
   Matrix(const Matrix& other) = delete;
 
