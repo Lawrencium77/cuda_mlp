@@ -9,19 +9,26 @@ SRC_DIR = src
 TEST_DIR = tests
 BUILD_DIR = build
 
+ALLOCATOR_SRC_FILES = $(SRC_DIR)/allocator/allocator.cu
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
 MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
 MODEL_SRC_FILES = $(SRC_DIR)/model/model.cpp
 TRAINING_SRC_FILES = $(SRC_DIR)/train/config_reader.cpp $(SRC_DIR)/train/train.cu
 
+ALLOCATOR_TEST_FILE = $(TEST_DIR)/test_allocator.cu
 MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
 MODEL_TEST_FILE = $(TEST_DIR)/test_model.cpp
 
+ALLOCATOR_OUTPUT = $(BUILD_DIR)/test_allocator
 MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
 MODEL_OUTPUT = $(BUILD_DIR)/test_model
 TRAINING_OUTPUT = $(BUILD_DIR)/train
 
-all: $(MATRIX_OUTPUT) $(MODEL_OUTPUT) $(TRAINING_OUTPUT)
+all: $(ALLOCATOR_OUTPUT) $(MATRIX_OUTPUT) $(MODEL_OUTPUT) $(TRAINING_OUTPUT)
+
+$(ALLOCATOR_OUTPUT): $(ALLOCATOR_TEST_FILE)
+	mkdir -p $(BUILD_DIR)
+	$(NVCC) $(CFLAGS) -o $(ALLOCATOR_OUTPUT) $(ALLOCATOR_TEST_FILE) $(ALLOCATOR_SRC_FILES)
 
 $(MATRIX_OUTPUT): $(MATRIX_SRC_FILES) $(MATRIX_TEST_FILE)
 	mkdir -p $(BUILD_DIR)
