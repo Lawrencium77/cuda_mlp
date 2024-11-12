@@ -1,9 +1,11 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include "allocator.h"
 #include <string>
 
 struct Matrix {
+  static MemoryAllocator allocator;
   float *host_data;
   float *device_data;
   int rows;

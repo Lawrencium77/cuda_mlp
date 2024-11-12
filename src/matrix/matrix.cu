@@ -2,16 +2,18 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
+MemoryAllocator Matrix::allocator;
+
 Matrix::Matrix() : rows(0), cols(0), numel(0), host_data(nullptr), device_data(nullptr) {}
 
 Matrix::Matrix(int rows, int cols) : rows(rows), cols(cols), numel(rows * cols) {
     host_data = new float[numel];
-    cudaMalloc(&device_data, numel * sizeof(float));
+    device_data = static_cast<float*>(allocator.allocate(numel * sizeof(float)));
 }
 
 Matrix::~Matrix() {
     delete [] host_data;
-    cudaFree(device_data);
+    allocator.free(device_data);
 }
 
 void Matrix::toDevice() {
@@ -39,7 +41,7 @@ Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), numel(other
 Matrix& Matrix::operator=(Matrix&& other) {
     if (this != &other) {
         delete[] host_data;
-        cudaFree(device_data);
+        allocator.free(device_data);
 
         rows = other.rows;
         cols = other.cols;
@@ -60,7 +62,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
     if (this != &other) {
         // Deallocate and reallocate resources since we can't assume numel == other.numel
         delete [] host_data;
-        cudaFree(device_data);
+        allocator.free(device_data);
 
         rows = other.rows;
         cols = other.cols;
@@ -69,7 +71,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
         host_data = new float[numel];
         std::copy(other.host_data, other.host_data + numel, host_data);
 
-        cudaMalloc(&device_data, numel * sizeof(float));
+        device_data = static_cast<float*>(allocator.allocate(numel * sizeof(float)));
         cudaMemcpy(device_data, other.device_data, numel * sizeof(float), cudaMemcpyDeviceToDevice);
     }
     return *this;

@@ -3,7 +3,7 @@ NVCC = nvcc
 CFLAGS = -I./include -std=c++20
 ifeq ($(DEBUG), 1)
     CFLAGS += -g
-    NVCC_FLAGS += -G -lineinfo
+    NVCC_FLAGS += -G 
 endif
 
 SRC_DIR = src
@@ -12,7 +12,7 @@ BUILD_DIR = build
 
 ALLOCATOR_SRC_FILES = $(SRC_DIR)/allocator/allocator.cu
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
-MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
+MATRIX_SRC_FILES = $(ALLOCATOR_SRC_FILES) $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
 MODEL_SRC_FILES = $(SRC_DIR)/model/model.cpp
 TRAINING_SRC_FILES = $(SRC_DIR)/train/config_reader.cpp $(SRC_DIR)/train/train.cu
 
