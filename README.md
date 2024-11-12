@@ -10,7 +10,8 @@ Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/)
 ## TODO
 
 * Linting.
-* PyTorch-style caching allocator.
+* Check allocator for bugs/sane implementations.
+* Always check error code from CUDA ops.
 * Multiple CUDA streams.
 * Proper tests.
 * Faster kernels, e.g. tiled matmuls.
