@@ -30,20 +30,6 @@ void* MemoryAllocator::allocate(size_t requested_size) {
     Block* current = head;
     while (current != nullptr) {
         if (current->free && current->size >= size) {
-            // Split block if it's way bigger than requested_size
-            if (current->size > size + 256) {
-                void* new_ptr = static_cast<char*>(current->ptr) + size;
-                Block* new_block = new Block(new_ptr, current->size - size);
-
-                new_block->next = current->next;
-                new_block->prev = current;
-                if (current->next) {
-                    current->next->prev = new_block;
-                }
-                current->next = new_block;
-                current->size = size;
-            }
-
             current->free = false;
             return current->ptr;
         }
@@ -74,25 +60,30 @@ void MemoryAllocator::free(void* ptr) {
         if (current->ptr == ptr) {
             current->free = true;
 
-            // Maybe coalesce with next block
-            if (current->next && current->next->free) {
-                current->size += current->next->size;
-                Block* to_delete = current->next;
-                current->next = to_delete->next;
-                if (to_delete->next) {
-                    to_delete->next->prev = current;
+            while (current->next && current->next->free &&
+                    (static_cast<char*>(current->ptr) + current->size == current->next->ptr)) {
+                Block* next_block = current->next;
+                current->size += next_block->size;
+                current->next = next_block->next;
+                if (next_block->next) {
+                    next_block->next->prev = current;
                 }
-                delete to_delete;
+                cudaFree(next_block->ptr);
+                delete next_block;
             }
 
-            // Maybe coalesce with prev block
-            if (current->prev && current->prev->free) {
-                current->prev->size += current->size;
-                current->prev->next = current->next;
+
+            // Coalesce with previous block
+            while (current->prev && current->prev->free &&
+                    (static_cast<char*>(current->prev->ptr) + current->prev->size == current->ptr)) {
+                Block* prev_block = current->prev;
+                prev_block->size += current->size;
+                prev_block->next = current->next;
                 if (current->next) {
-                    current->next->prev = current->prev;
+                    current->next->prev = prev_block;
                 }
                 delete current;
+                current = prev_block;
             }
 
             return;
