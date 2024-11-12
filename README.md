@@ -11,6 +11,7 @@ Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/)
 
 * Linting.
 * Check allocator for bugs/sane implementations.
+* Allocate memory upfront, at the start of training.
 * Always check error code from CUDA ops.
 * Multiple CUDA streams.
 * Proper tests.
