@@ -8,16 +8,23 @@
 MemoryAllocator::Block::Block(void* p, size_t s) : ptr(p), size(s), free(true), next(nullptr), prev(nullptr) {}
 MemoryAllocator::MemoryAllocator() : head(nullptr) {}
 MemoryAllocator::~MemoryAllocator() {
-    Block* current = head;
-    while (current != nullptr) {
-        Block* next = current->next;
-        cudaFree(current->ptr);
-        delete current;
-        current = next;
+    if (!cleaned_up) {
+        std::cerr << "Warning: program is exiting without cleanup of memory allocator resources" << std::endl;
     }
 }
 
-// Round up to nearest multiple of 256 bytes for alignment
+void MemoryAllocator::cleanup() {
+    Block* current = head;
+    while (current != nullptr) {
+        Block* next = current->next;
+        cudaError_t free_err = cudaFree(current->ptr);
+        CHECK_CUDA_STATE_WITH_ERR(free_err);
+        delete current;
+        current = next;
+    }
+    cleaned_up = true;
+}
+
 size_t MemoryAllocator::align_size(size_t size) {
     return (size + 255) & ~255;
 }
@@ -40,7 +47,8 @@ void* MemoryAllocator::allocate(size_t requested_size) {
 
     // No suitable block found
     void* new_ptr;
-    cudaMalloc(&new_ptr, size);
+    cudaError_t malloc_err = cudaMalloc(&new_ptr, size);
+    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
 
     Block* new_block = new Block(new_ptr, size);
     new_block->free = false;
@@ -98,7 +106,5 @@ void MemoryAllocator::free(void* ptr) {
         current = current->next;
     }
 
-    // If we didn't find the block, raise an error
-    std::cerr << "Attempted to call free(ptr) but ptr does not correspond to a memory block" << std::endl;
-    exit(1);
+    throw std::runtime_error("Attempted to call free(ptr) but ptr does not correspond to a memory block");
 }

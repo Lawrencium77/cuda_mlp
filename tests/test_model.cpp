@@ -48,12 +48,10 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
 
   mlp.backward(labels, output);
 
-  // Examine first layer gradient
   float* data = new float[feat_dim * feat_dim];
   Matrix& grads = mlp.layers[0].grads;
   grads.printData("First layer gradients");
 
-  // Update weights
   float lr = 1.0;
   mlp.layers[0].weights.printData("Before weight update");
   mlp.update_weights(lr);
@@ -92,5 +90,6 @@ void runTests() {
 
 int main() {
     runTests();
+    Matrix::allocator.cleanup();
     return 0;
 }

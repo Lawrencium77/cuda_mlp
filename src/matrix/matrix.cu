@@ -93,8 +93,11 @@ void Matrix::printData(std::string message) {
 
 float matabsmax(const Matrix& mat){
     float* d_max;
-    cudaMalloc(&d_max, sizeof(float));
-    cudaMemset(d_max, 0, sizeof(float));
+    cudaError_t malloc_err = cudaMalloc(&d_max, sizeof(float));
+    cudaError_t memset_err = cudaMemset(d_max, 0, sizeof(float));
+    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+    CHECK_CUDA_STATE_WITH_ERR(memset_err);
+
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
@@ -104,18 +107,23 @@ float matabsmax(const Matrix& mat){
 
     matrix_max_abs<<<gridSize, blockSize>>>(mat.device_data, d_max, mat.rows, mat.cols);
     cudaDeviceSynchronize();
+    CHECK_CUDA_STATE();
 
     float h_sum = 0.0f;
-    cudaMemcpy(&h_sum, d_max, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaError_t memcpy_err = cudaMemcpy(&h_sum, d_max, sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK_CUDA_STATE_WITH_ERR(memcpy_err);
 
-    cudaFree(d_max);
+    cudaError_t free_err = cudaFree(d_max);
+    CHECK_CUDA_STATE_WITH_ERR(free_err);
     return h_sum;
 }
 
 float matsum(const Matrix& mat){
     float* d_sum;
-    cudaMalloc(&d_sum, sizeof(float));
-    cudaMemset(d_sum, 0, sizeof(float));
+    cudaError_t malloc_err = cudaMalloc(&d_sum, sizeof(float));
+    cudaError_t memset_err = cudaMemset(d_sum, 0, sizeof(float));
+    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+    CHECK_CUDA_STATE_WITH_ERR(memset_err);
 
     dim3 blockSize(16, 16);
     dim3 gridSize(
@@ -125,11 +133,14 @@ float matsum(const Matrix& mat){
 
     matrix_sum<<<gridSize, blockSize>>>(mat.device_data, d_sum, mat.rows, mat.cols);
     cudaDeviceSynchronize();
+    CHECK_CUDA_STATE();
 
     float h_sum = 0.0f;
-    cudaMemcpy(&h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaError_t memcpy_err = cudaMemcpy(&h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK_CUDA_STATE_WITH_ERR(memcpy_err);
 
-    cudaFree(d_sum);
+    cudaError_t free_err = cudaFree(d_sum);
+    CHECK_CUDA_STATE_WITH_ERR(free_err);
     return h_sum;
 }
 
@@ -143,6 +154,7 @@ Matrix transpose(const Matrix& mat) {
     );
 
     matrix_transpose<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
@@ -153,6 +165,7 @@ Matrix softmax(const Matrix& mat) {
     dim3 gridSize(1, (mat.rows + 1024 - 1) / 1024);
 
     matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 };
 
@@ -166,6 +179,7 @@ Matrix sigmoid(const Matrix& mat) {
     );
 
     matrix_sigmoid<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 };
 
@@ -179,6 +193,7 @@ Matrix relu(const Matrix& mat) {
     );
 
     matrix_relu<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
@@ -192,6 +207,7 @@ Matrix operator+(const Matrix& mat, const float value) {
     );
 
     matrix_const_add<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
@@ -205,6 +221,7 @@ Matrix operator*(const Matrix& mat, const float value) {
     );
 
     matrix_const_mul<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
@@ -220,8 +237,7 @@ Matrix operator/(const Matrix& mat, const float value) {
 
 Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
-        std::cerr << "Matrix dimensions must match for addition!" << std::endl;
-        exit(1);
+        throw std::runtime_error("Matrix dimensions must match for addition");
     }
     Matrix result(mat1.rows, mat1.cols);
 
@@ -232,13 +248,13 @@ Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
     );
 
     matrix_add<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
 Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
-        std::cerr << "Matrix dimensions must match for Hadamard product!" << std::endl;
-        exit(1);
+        throw std::runtime_error("Matrix dimensions must match for Hadamard product");
     }
     Matrix result(mat1.rows, mat1.cols);
 
@@ -249,13 +265,13 @@ Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
     );
 
     matrix_hadamard<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
+    CHECK_CUDA_STATE();
     return result;
 }
 
 Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.cols != mat2.rows){
-        std::cerr << "Trying to multiply two matrices with non-matchiing inner dim" << std::endl;
-        exit(1);
+        throw std::runtime_error("Trying to multiply two matrices with non-matchiing inner dim");
     }
 
     Matrix result(mat1.rows, mat2.cols);
@@ -267,6 +283,7 @@ Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
     );
 
     matrix_multiply<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols, mat2.cols);
+    CHECK_CUDA_STATE();
     return result;
 };
 
@@ -280,6 +297,7 @@ Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output) {
     );
 
     matrix_relu_backward<<<gridSize, blockSize>>>(mat1.device_data, grad_output.device_data, grad_input.device_data, mat1.rows, mat1.cols);
+    CHECK_CUDA_STATE();
     return grad_input;
 }
 
@@ -291,12 +309,12 @@ void Matrix::random(const unsigned long seed, const float min, const float max) 
     );
 
     fill_with_random<<<gridSize, blockSize>>>(device_data, seed, rows, cols, min, max);
+    CHECK_CUDA_STATE();
 };
 
 Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
     if (mat1.rows != labels.rows) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix losses = Matrix(mat1.rows, 1);
@@ -305,6 +323,7 @@ Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
     dim3 gridSize(1, 1);
 
     ce_loss<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, mat1.rows, mat1.cols);
+    CHECK_CUDA_STATE();
     return losses;
 };
 
@@ -315,8 +334,7 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
     int num_classes = softmax_output.cols;
 
     if (labels.rows != bsz) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix softmax_grads = Matrix(bsz, num_classes);
@@ -328,13 +346,13 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
     );
 
     softmax_bwd<<<gridSize, blockSize>>>(labels.device_data, softmax_output.device_data, softmax_grads.device_data, bsz, num_classes);
+    CHECK_CUDA_STATE();
     return softmax_grads;
 }
 
 std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Matrix& labels) {
     if (mat1.rows != labels.rows) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix losses = Matrix(mat1.rows, 1);
@@ -344,5 +362,6 @@ std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Mat
     dim3 gridSize(1, 1);
 
     ce_loss_and_predictions<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, predictions.device_data, mat1.rows, mat1.cols);
+    CHECK_CUDA_STATE();
     return std::make_pair(std::move(losses), std::move(predictions));
 };

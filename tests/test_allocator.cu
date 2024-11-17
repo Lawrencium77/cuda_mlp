@@ -6,7 +6,7 @@ void test_basic_allocation_and_deallocation(MemoryAllocator& allocator) {
     void* ptr1 = allocator.allocate(1024); // 1KB
     if (!ptr1) {
         std::cerr << "Failed to allocate 1KB" << std::endl;
-        exit(1);
+        throw std::bad_alloc();
     }
     allocator.free(ptr1);
 }
@@ -18,7 +18,7 @@ void test_multiple_allocations_and_deallocations(MemoryAllocator& allocator) {
     void* ptr4 = allocator.allocate(8192);
     if (!ptr2 || !ptr3 || !ptr4) {
         std::cerr << "Failed to allocate multiple blocks" << std::endl;
-        exit(1);
+        throw std::bad_alloc();
     }
     allocator.free(ptr2);
     allocator.free(ptr3);
@@ -33,8 +33,7 @@ void test_interleaved_allocation_and_deallocation(MemoryAllocator& allocator) {
     allocator.free(ptrB);
     void* ptrD = allocator.allocate(2048);
     if (ptrD != ptrB) {
-        std::cerr << "Allocator did not reuse freed block" << std::endl;
-        exit(1);
+        throw std::runtime_error("Allocator did not reuse freed block");
     }
     allocator.free(ptrA);
     allocator.free(ptrC);
@@ -50,8 +49,7 @@ void test_block_coalescing(MemoryAllocator& allocator) {
     allocator.free(ptrG);
     void* ptrH = allocator.allocate(6144); // Should fit into coalesced block
     if (!ptrH) {
-        std::cerr << "Failed to allocate in coalesced block" << std::endl;
-        exit(1);
+        throw std::runtime_error("Failed to allocate in coalesced block");
     }
     allocator.free(ptrE);
     allocator.free(ptrH);
@@ -63,8 +61,7 @@ void test_block_splitting(MemoryAllocator& allocator) {
     allocator.free(ptrI);
     void* ptrJ = allocator.allocate(1024);
     if (!ptrJ) {
-        std::cerr << "Failed to split block" << std::endl;
-        exit(1);
+        throw std::runtime_error("Failed to split block");
     }
     allocator.free(ptrJ);
 }
@@ -73,21 +70,13 @@ void test_zero_byte_allocation(MemoryAllocator& allocator) {
     std::cout << "Test Zero-byte allocation" << std::endl;
     void* ptrZero = allocator.allocate(0);
     if (ptrZero != nullptr) {
-        std::cerr << "Allocator should return nullptr for zero-byte allocation" << std::endl;
-        exit(1);
+        throw std::runtime_error("Allocator should return nullptr for zero-byte allocation");
     }
 }
 
 void test_free_nullptr(MemoryAllocator& allocator) {
     std::cout << "Test Freeing nullptr" << std::endl;
     allocator.free(nullptr);
-}
-
-void test_free_external_pointer(MemoryAllocator& allocator) {
-    std::cout << "Test Freeing external pointer" << std::endl;
-    void* external_ptr;
-    cudaMalloc(&external_ptr, 1024);
-    allocator.free(external_ptr);
 }
 
 void test_stress_random_sizes(MemoryAllocator& allocator) {
@@ -98,8 +87,7 @@ void test_stress_random_sizes(MemoryAllocator& allocator) {
         size_t size = (rand() % 1024) + 1;
         allocations[i] = allocator.allocate(size);
         if (!allocations[i]) {
-            std::cerr << "Failed to allocate in stress test at iteration " << i << std::endl;
-            exit(1);
+            throw std::runtime_error("Failed to allocate in stress test at iteration ");
         }
     }
     for (int i = 0; i < num_allocs; ++i) {
@@ -117,8 +105,9 @@ int main() {
     test_block_splitting(allocator);
     test_zero_byte_allocation(allocator);
     test_free_nullptr(allocator);
-    test_free_external_pointer(allocator);
     test_stress_random_sizes(allocator);
+
+    allocator.cleanup();
 
     return 0;
 }

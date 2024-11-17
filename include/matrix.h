@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include "allocator.h"
+#include "cuda_utils.h"
 #include <string>
 
 struct Matrix {
