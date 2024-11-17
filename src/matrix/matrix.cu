@@ -237,8 +237,7 @@ Matrix operator/(const Matrix& mat, const float value) {
 
 Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
-        std::cerr << "Matrix dimensions must match for addition!" << std::endl;
-        exit(1);
+        throw std::runtime_error("Matrix dimensions must match for addition");
     }
     Matrix result(mat1.rows, mat1.cols);
 
@@ -255,8 +254,7 @@ Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
 
 Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols){
-        std::cerr << "Matrix dimensions must match for Hadamard product!" << std::endl;
-        exit(1);
+        throw std::runtime_error("Matrix dimensions must match for Hadamard product");
     }
     Matrix result(mat1.rows, mat1.cols);
 
@@ -273,8 +271,7 @@ Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
 
 Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
     if (mat1.cols != mat2.rows){
-        std::cerr << "Trying to multiply two matrices with non-matchiing inner dim" << std::endl;
-        exit(1);
+        throw std::runtime_error("Trying to multiply two matrices with non-matchiing inner dim");
     }
 
     Matrix result(mat1.rows, mat2.cols);
@@ -317,8 +314,7 @@ void Matrix::random(const unsigned long seed, const float min, const float max) 
 
 Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
     if (mat1.rows != labels.rows) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix losses = Matrix(mat1.rows, 1);
@@ -338,8 +334,7 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
     int num_classes = softmax_output.cols;
 
     if (labels.rows != bsz) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix softmax_grads = Matrix(bsz, num_classes);
@@ -357,8 +352,7 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
 
 std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Matrix& labels) {
     if (mat1.rows != labels.rows) {
-        std::cerr << "Non-matching number of rows for input and labels" << std::endl;
-        exit(1);
+        throw std::runtime_error("Non-matching number of rows for input and labels");
     }
 
     Matrix losses = Matrix(mat1.rows, 1);

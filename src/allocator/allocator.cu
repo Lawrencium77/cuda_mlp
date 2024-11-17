@@ -106,6 +106,5 @@ void MemoryAllocator::free(void* ptr) {
         current = current->next;
     }
 
-    std::cerr << "Attempted to call free(ptr) but ptr does not correspond to a memory block" << std::endl;
-    exit(1);
+    throw std::runtime_error("Attempted to call free(ptr) but ptr does not correspond to a memory block");
 }
