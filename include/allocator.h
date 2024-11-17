@@ -25,6 +25,4 @@ class MemoryAllocator {
 
         void* allocate(size_t requested_size);
         void free(void* ptr);
-
-        void allocate_upfront(size_t requested_size);
 };

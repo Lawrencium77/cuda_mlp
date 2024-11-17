@@ -69,17 +69,6 @@ void test_block_splitting(MemoryAllocator& allocator) {
     allocator.free(ptrJ);
 }
 
-void test_allocate_upfront(MemoryAllocator& allocator) {
-    std::cout << "Test allocate_upfront" << std::endl;
-    allocator.allocate_upfront(16384);
-    void* ptrK = allocator.allocate(4096);
-    if (!ptrK) {
-        std::cerr << "Failed to allocate after upfront allocation" << std::endl;
-        exit(1);
-    }
-    allocator.free(ptrK);
-}
-
 void test_zero_byte_allocation(MemoryAllocator& allocator) {
     std::cout << "Test Zero-byte allocation" << std::endl;
     void* ptrZero = allocator.allocate(0);
@@ -126,7 +115,6 @@ int main() {
     test_interleaved_allocation_and_deallocation(allocator);
     test_block_coalescing(allocator);
     test_block_splitting(allocator);
-    test_allocate_upfront(allocator);
     test_zero_byte_allocation(allocator);
     test_free_nullptr(allocator);
     test_free_external_pointer(allocator);

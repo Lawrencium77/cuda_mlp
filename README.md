@@ -10,8 +10,6 @@ Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/)
 ## TODO
 
 * Linting.
-* Check allocator for bugs/sane implementations.
-* Allocate memory upfront, at the start of training.
 * Always check error code from CUDA ops.
 * Multiple CUDA streams.
 * Proper tests.
@@ -36,3 +34,5 @@ Here's an illustration of the problem:
 ![](assets/nsight_image.png)
 
 In this diagram, we run a matrix multiply following by a ReLU. In the CUDA API stream we see `cudaMalloc` calls in red, and kernel invocations in blue. The poor CUDA stream saturation is clear to see.
+
+After implementing our custom allocator, `cudaMalloc` is only called

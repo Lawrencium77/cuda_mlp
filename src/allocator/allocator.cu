@@ -22,6 +22,7 @@ size_t MemoryAllocator::align_size(size_t size) {
     return (size + 255) & ~255;
 }
 
+// TODO: Implement block splitting to improve memory utilisation
 void* MemoryAllocator::allocate(size_t requested_size) {
     if (requested_size == 0) {
         return nullptr;
@@ -101,11 +102,3 @@ void MemoryAllocator::free(void* ptr) {
     std::cerr << "Attempted to call free(ptr) but ptr does not correspond to a memory block" << std::endl;
     exit(1);
 }
-
-// Allocate and immediately free requested_size bytes.
-// Useful when doing one large allocation at the start of the program.
-// This minimises time spent doign cudaMalloc.
-void MemoryAllocator::allocate_upfront(size_t requested_size) {
-    void* allocator_head = allocate(requested_size);
-    free(allocator_head);
-};
