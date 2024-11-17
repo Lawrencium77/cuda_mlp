@@ -3,6 +3,7 @@
 // Also implements free block coalescing.
 // Inspired by https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html
 #include "allocator.h"
+#include <iostream>
 
 MemoryAllocator::Block::Block(void* p, size_t s) : ptr(p), size(s), free(true), next(nullptr), prev(nullptr) {}
 MemoryAllocator::MemoryAllocator() : head(nullptr) {}
@@ -54,28 +55,33 @@ void* MemoryAllocator::allocate(size_t requested_size) {
 void MemoryAllocator::free(void* ptr) {
     if (!ptr) return;
 
-    // Find block containing this pointer
     Block* current = head;
     while (current != nullptr) {
         if (current->ptr == ptr) {
             current->free = true;
 
-            while (current->next && current->next->free &&
-                    (static_cast<char*>(current->ptr) + current->size == current->next->ptr)) {
+            // Coalesce with next block(s)
+            while (
+                current->next &&
+                current->next->free &&
+                (static_cast<char*>(current->ptr) + current->size == current->next->ptr) // Blocks aren't guaranteed to be contiguous in memory, so we must check
+            ) {
                 Block* next_block = current->next;
                 current->size += next_block->size;
                 current->next = next_block->next;
                 if (next_block->next) {
                     next_block->next->prev = current;
                 }
-                cudaFree(next_block->ptr);
                 delete next_block;
             }
 
 
-            // Coalesce with previous block
-            while (current->prev && current->prev->free &&
-                    (static_cast<char*>(current->prev->ptr) + current->prev->size == current->ptr)) {
+            // Coalesce with previous block(s)
+            while (
+                current->prev &&
+                current->prev->free &&
+                (static_cast<char*>(current->prev->ptr) + current->prev->size == current->ptr)
+            ) {
                 Block* prev_block = current->prev;
                 prev_block->size += current->size;
                 prev_block->next = current->next;
@@ -91,8 +97,9 @@ void MemoryAllocator::free(void* ptr) {
         current = current->next;
     }
 
-    // If we didn't find the block, just call cudaFree
-    cudaFree(ptr);
+    // If we didn't find the block, raise an error
+    std::cerr << "Attempted to call free(ptr) but ptr does not correspond to a memory block" << std::endl;
+    exit(1);
 }
 
 // Allocate and immediately free requested_size bytes.
