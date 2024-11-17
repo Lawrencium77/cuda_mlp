@@ -11,7 +11,6 @@ TEST_DIR = tests
 BUILD_DIR = build
 OBJ_DIR = $(BUILD_DIR)/obj
 
-# Source files
 ALLOCATOR_SRC_FILES = $(SRC_DIR)/allocator/allocator.cu
 DATA_SRC_FILES = $(SRC_DIR)/dataloader/read_mnist.cpp
 MATRIX_SRC_FILES = $(SRC_DIR)/matrix/matrix.cu $(SRC_DIR)/matrix/matrix_kernels.cu
@@ -19,18 +18,15 @@ MODEL_SRC_FILES = $(SRC_DIR)/model/model.cpp
 TRAINING_SRC_FILES = $(SRC_DIR)/train/config_reader.cpp $(SRC_DIR)/train/train.cu
 UTILS_SRC_FILES = $(SRC_DIR)/utils/cuda_utils.cu
 
-# Test files
 ALLOCATOR_TEST_FILE = $(TEST_DIR)/test_allocator.cu
 MATRIX_TEST_FILE = $(TEST_DIR)/test_matrix.cpp
 MODEL_TEST_FILE = $(TEST_DIR)/test_model.cpp
 
-# Outputs
 ALLOCATOR_OUTPUT = $(BUILD_DIR)/test_allocator
 MATRIX_OUTPUT = $(BUILD_DIR)/test_matrix
 MODEL_OUTPUT = $(BUILD_DIR)/test_model
 TRAINING_OUTPUT = $(BUILD_DIR)/train
 
-# Object files
 ALLOCATOR_OBJ_FILES = $(ALLOCATOR_SRC_FILES:$(SRC_DIR)/%.cu=$(OBJ_DIR)/%.o)
 DATA_OBJ_FILES = $(DATA_SRC_FILES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 MATRIX_OBJ_FILES = $(MATRIX_SRC_FILES:$(SRC_DIR)/%.cu=$(OBJ_DIR)/%.o)
