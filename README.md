@@ -54,3 +54,7 @@ Validation Acc after epoch 2: 96.42%
 Epoch 3/10
 ...
 ```
+
+and we now launch CUDA kernels asynchronously:
+
+![](assets/nsight_image2.png)
