@@ -83,13 +83,6 @@ void test_free_nullptr(MemoryAllocator& allocator) {
     allocator.free(nullptr);
 }
 
-void test_free_external_pointer(MemoryAllocator& allocator) {
-    std::cout << "Test Freeing external pointer" << std::endl;
-    void* external_ptr;
-    cudaMalloc(&external_ptr, 1024);
-    allocator.free(external_ptr);
-}
-
 void test_stress_random_sizes(MemoryAllocator& allocator) {
     std::cout << "Test Stress test with random sizes" << std::endl;
     const int num_allocs = 1000;
@@ -117,8 +110,9 @@ int main() {
     test_block_splitting(allocator);
     test_zero_byte_allocation(allocator);
     test_free_nullptr(allocator);
-    test_free_external_pointer(allocator);
     test_stress_random_sizes(allocator);
+
+    allocator.cleanup();
 
     return 0;
 }

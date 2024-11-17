@@ -39,7 +39,6 @@ std::pair<Matrix, Matrix> prepare_batch(
 ) {
     const int offset = batch_idx * current_bsz;
 
-    // Prepare input
     Matrix image_batch(current_bsz, feat_dim);
     float* image_data = new float[current_bsz * feat_dim];
     for (int i = 0; i < current_bsz; ++i) {
@@ -51,7 +50,6 @@ std::pair<Matrix, Matrix> prepare_batch(
     image_batch.setHostData(image_data);
     image_batch.toDevice();
 
-    // Prepare labels
     Matrix labels_batch(current_bsz, 1);
     float* labels_data = new float[current_bsz];
     for (int i = 0; i < current_bsz; ++i) {
@@ -129,7 +127,7 @@ std::vector<std::vector<float>> train_loop(
 
             cudaDeviceSynchronize();
             CHECK_CUDA_STATE();
-            
+
             float loss = matsum(get_ce_loss(output, data_and_labels.second)) / current_bsz;
             train_losses.push_back(loss);
 
@@ -168,14 +166,7 @@ void save_metric(const std::vector<float>& losses, const std::string filename) {
     loss_file.close();
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <config_file>\n";
-        return EXIT_FAILURE;
-    }
-
-    // Load config
-    const std::string config_file = argv[1];
+void train(const std::string config_file) {
     std::map<std::string, std::string> config = read_config(config_file);
 
     const std::string data_dir = config["data_dir"];
@@ -184,7 +175,6 @@ int main(int argc, char* argv[]) {
     const std::string train_label_file = data_dir + "/train-labels-idx1-ubyte";
     const std::string val_label_file = data_dir + "/t10k-labels-idx1-ubyte";
 
-    // Load all data into memory.
     std::vector<std::vector<unsigned char> > train_images = read_mnist_images(train_image_file);
     std::vector<std::vector<unsigned char> > val_images = read_mnist_images(val_image_file);
     std::vector<unsigned char> train_labels = read_mnist_labels(train_label_file);
@@ -214,6 +204,14 @@ int main(int argc, char* argv[]) {
     save_metric(metrics[0], log_dir + "/train_losses.txt");
     save_metric(metrics[1], log_dir + "/val_losses.txt");
     save_metric(metrics[2], log_dir + "/val_accs.txt");
+}
 
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <config_file>\n";
+        return EXIT_FAILURE;
+    }
+    train(argv[1]);
+    Matrix::allocator.cleanup();
     return 0;
 }

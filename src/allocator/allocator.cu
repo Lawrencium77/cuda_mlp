@@ -8,6 +8,12 @@
 MemoryAllocator::Block::Block(void* p, size_t s) : ptr(p), size(s), free(true), next(nullptr), prev(nullptr) {}
 MemoryAllocator::MemoryAllocator() : head(nullptr) {}
 MemoryAllocator::~MemoryAllocator() {
+    if (!cleaned_up) {
+        std::cerr << "Warning: program is exiting without cleanup of memory allocator resources" << std::endl;
+    }
+}
+
+void MemoryAllocator::cleanup() {
     Block* current = head;
     while (current != nullptr) {
         Block* next = current->next;
@@ -16,9 +22,9 @@ MemoryAllocator::~MemoryAllocator() {
         delete current;
         current = next;
     }
+    cleaned_up = true;
 }
 
-// Round up to nearest multiple of 256 bytes for alignment
 size_t MemoryAllocator::align_size(size_t size) {
     return (size + 255) & ~255;
 }
@@ -100,7 +106,6 @@ void MemoryAllocator::free(void* ptr) {
         current = current->next;
     }
 
-    // If we didn't find the block, raise an error
     std::cerr << "Attempted to call free(ptr) but ptr does not correspond to a memory block" << std::endl;
     exit(1);
 }
