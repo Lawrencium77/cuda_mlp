@@ -57,6 +57,7 @@ I've tried to keep the number of dependencies as small as possible. Currently, t
 
 ## TODO
 
+* Compare my throughput with PyTorch on various hardware.
 * Faster kernels, (tiled matmul, fused matmul-ReLU, etc.)
 * Support multiple dtypes (we currently only support FP32)
 * Add more detail to loss plot.
