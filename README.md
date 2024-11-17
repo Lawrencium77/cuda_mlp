@@ -1,41 +1,35 @@
 # Cuda MLP
 
-Training an MLP on MNIST in raw CUDA/C++.
+This project trains an MLP on MNIST in pure CUDA/C++. It aims to be simple and quick.
 
-## Dependencies
-
-Plotting loss curves requires [matplotlib](https://pypi.org/project/matplotlib/) and [seaborn](https://pypi.org/project/seaborn/).
-<br>`wget` is required to download MNIST.
-
-## TODO
-
-* Linting.
-* Templating?
-* Multiple CUDA streams.
-* Proper tests.
-* Faster kernels, e.g. tiled matmuls.
-* Add more detail to the comparisons plot.
-
-## Comparison
+## Accuracy
 
 The following plot shows training loss for my implementation, and PyTorch. The performance is almost identical.
 
 
 ![](assets/comparison.png)
 
-## The Need for a Custom allocator
+## Speed
 
-Whenever we launch a CUDA kernel, we must allocate GPU memory for the output tensor with a call to `cudaMalloc`. This is a blocking call; it forces a synchronisation between host and device.
+A single epoch (including validation) takes around 750ms on an H100.
 
-This is disastrous from a GPU utilisation perspective. To overcome this, the popular deep learning frameworks maintain their own "pool" of GPU memory which is managed internally, thus avoiding repeated calls to `cudaMalloc` and `cudaFree`. Examples include [PyTorch's CUDA Caching Allocator](https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html) and [Tensorflow's BFC Allocator](https://github.com/sourcecode369/tensorflow-1/blob/master/tensorflow/core/common_runtime/bfc_allocator.cc).
+### The Need for a Custom Memory Allocator
+
+Whenever launching a CUDA kernel, we must allocate GPU memory for the output tensor with a call to `cudaMalloc`. This forces a host-device synchronisation.
+
+This is bad for GPU utilisation. As a workaround, popular deep learning frameworks manage their own "pool" of GPU memory, thus avoiding repeated calls to `cudaMalloc`/`cudaFree`. Examples include [PyTorch's CUDA Caching Allocator](https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html) and [Tensorflow's BFC Allocator](https://github.com/sourcecode369/tensorflow-1/blob/master/tensorflow/core/common_runtime/bfc_allocator.cc).
 
 Here's an illustration of the problem:
 
 ![](assets/nsight_image.png)
 
-In this diagram, we run a matrix multiply following by a ReLU. In the CUDA API stream we see `cudaMalloc` calls in red, and kernel invocations in blue. The poor CUDA stream saturation is clear to see.
+In this diagram, we run a matmul followed by a ReLU. In the CUDA API stream we see `cudaMalloc` calls in red, and kernel invocations in blue.
 
-After implementing our custom allocator, `cudaMalloc` is only called during the first epoch. Logging each call to `cudaMalloc` during training gives:
+After implementing our custom allocator, CUDA kernels are launched asynchronously:
+
+![](assets/nsight_image2.png)
+
+Logging each call to `cudaMalloc` shows that it is only called during the first epoch:
 
 ```
 Calling allocate, cudaMalloc
@@ -54,6 +48,18 @@ Epoch 3/10
 ...
 ```
 
-and we now launch CUDA kernels asynchronously:
+## Dependencies
 
-![](assets/nsight_image2.png)
+I've tried to keep the number of dependencies as small as possible. Currently, the required dependencies are:
+
+* `wget` (to download MNIST).
+* [matplotlib](https://pypi.org/project/matplotlib/) and [seaborn](https://pypi.org/project/seaborn/) (for plotting loss curves).
+
+## TODO
+
+* Faster kernels, (tiled matmul, fused matmul-ReLU, etc.)
+* Support multiple dtypes (we currently only support FP32)
+* Add more detail to loss plot.
+* More thorough unit tests.
+* Linting
+* Build with CMake
