@@ -1,8 +1,9 @@
 #include "config_reader.h"
 #include "model.h"
 #include "read_mnist.h"
-#include <filesystem>
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
 #include <random>
 
 void shuffle_dataset(
@@ -95,7 +96,8 @@ std::vector<std::vector<float>> train_loop(
   const int bsz,
   const int feat_dim,
   const float lr,
-  const bool verbose
+  const bool verbose,
+  const bool time_epoch
 ){
     std::vector<float> train_losses;
     std::vector<float> val_losses;
@@ -105,10 +107,11 @@ std::vector<std::vector<float>> train_loop(
     const int num_batches_per_epoch = (num_samples + bsz - 1) / bsz;
 
     for (int epoch = 0; epoch < num_epochs; ++epoch) {
-        std::cout << "Epoch " << epoch + 1 << "/" << num_epochs << std::endl;
+        std::cout << "\nEpoch " << epoch + 1 << "/" << num_epochs << std::endl;
 
         shuffle_dataset(train_images, train_labels);
 
+        auto start_time = std::chrono::high_resolution_clock::now();
         for (int batch_idx = 0; batch_idx < num_batches_per_epoch; ++batch_idx) {
             const int current_bsz = std::min(bsz, num_samples - batch_idx * bsz);
             std::pair<Matrix, Matrix> data_and_labels = prepare_batch(
@@ -139,6 +142,13 @@ std::vector<std::vector<float>> train_loop(
         std::pair<float, float> val_loss_and_acc = get_val_stats(mlp, val_images, val_labels, bsz, feat_dim);
         val_losses.push_back(val_loss_and_acc.first);
         val_accs.push_back(val_loss_and_acc.second);
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        if (time_epoch) {
+            std::cout << "Epoch " << epoch << " took " << elapsed_time.count() << " ms" << std::endl;
+        }
+
         std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss_and_acc.first << std::endl;
         std::cout << "Validation Acc after epoch " << epoch + 1 << ": " << val_loss_and_acc.second << "%" << std::endl;
     }
@@ -194,7 +204,8 @@ int main(int argc, char* argv[]) {
       std::stoi(config["bsz"]),
       std::stoi(config["feat_dim"]),
       std::stof(config["learning_rate"]),
-      std::stoi(config["verbose"])
+      std::stoi(config["verbose"]),
+      std::stoi(config["time_epoch"])
     );
 
     save_metric(metrics[0], log_dir + "/train_losses.txt");
