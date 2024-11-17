@@ -18,8 +18,11 @@ Matrix& SingleLayerPerceptron::forward(Matrix& input) {
   // weights: dim_in x dim_out
   // input: bsz x dim_in
   // output: bsz x dim_out
-  inputs = input; // Invokes a copy
-  Matrix Z = matmul(inputs, weights);
+  
+  // Using a ptr means we need to make sure that the input matrix is not modified between the forward and backward call.
+  inputs = &input;
+
+  Matrix Z = matmul(input, weights);
   if (use_activation) {
     activations = relu(Z);
   } else {
@@ -34,7 +37,7 @@ Matrix SingleLayerPerceptron::backward(Matrix& grad) {
   // input_grads: bsz x dim_in
   // weight_grads: dim_in x dim_out
   const int bsz = grad.rows;
-  const Matrix inputs_tranpose = transpose(inputs); 
+  const Matrix inputs_tranpose = transpose(*inputs); 
   const Matrix weights_tranpose = transpose(weights); 
   Matrix delta;
   

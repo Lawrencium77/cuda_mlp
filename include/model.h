@@ -6,7 +6,7 @@ struct SingleLayerPerceptron {
     const int dim_in;
     Matrix weights;
     Matrix grads;
-    Matrix inputs;
+    Matrix* inputs;
     Matrix activations;
     const bool use_activation;
 
