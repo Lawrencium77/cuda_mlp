@@ -1,3 +1,4 @@
+#include "cuda_utils.h"
 #include <cstddef>
 
 #ifdef __CUDACC__

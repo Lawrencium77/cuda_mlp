@@ -11,7 +11,8 @@ MemoryAllocator::~MemoryAllocator() {
     Block* current = head;
     while (current != nullptr) {
         Block* next = current->next;
-        cudaFree(current->ptr);
+        cudaError_t free_err = cudaFree(current->ptr);
+        CHECK_CUDA_STATE_WITH_ERR(free_err);
         delete current;
         current = next;
     }
@@ -40,7 +41,8 @@ void* MemoryAllocator::allocate(size_t requested_size) {
 
     // No suitable block found
     void* new_ptr;
-    cudaMalloc(&new_ptr, size);
+    cudaError_t malloc_err = cudaMalloc(&new_ptr, size);
+    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
 
     Block* new_block = new Block(new_ptr, size);
     new_block->free = false;

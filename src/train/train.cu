@@ -1,4 +1,5 @@
 #include "config_reader.h"
+#include "cuda_utils.h"
 #include "model.h"
 #include "read_mnist.h"
 #include <algorithm>
@@ -127,6 +128,8 @@ std::vector<std::vector<float>> train_loop(
             mlp.update_weights(lr);
 
             cudaDeviceSynchronize();
+            CHECK_CUDA_STATE();
+            
             float loss = matsum(get_ce_loss(output, data_and_labels.second)) / current_bsz;
             train_losses.push_back(loss);
 
