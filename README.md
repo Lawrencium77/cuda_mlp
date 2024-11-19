@@ -11,7 +11,7 @@ The following plot shows training loss for my implementation, and PyTorch. The p
 
 ## Speed
 
-A single epoch (including validation) takes around 750ms on an H100.
+A single epoch (including validation) takes ~750ms on an H100 for a model with 4 layers and a hidden dimension of 784. By comparison, PyTorch achieves ~3.6s per epoch (with `torch.compile` enabled and allowing for a warmup phase). **This custom implementation is >4x quicker**, presumably because it avoids any Python interpreter overhead.
 
 ### The Need for a Custom Memory Allocator
 
