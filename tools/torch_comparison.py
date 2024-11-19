@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -48,18 +49,18 @@ def validate(
     val_loader: DataLoader,
     model: nn.Module,
     criterion: nn.Module,
-    epoch: int,
-):
+) -> float:
     model.eval()
     val_loss = 0.0
     with torch.no_grad():
         for images, labels in val_loader:
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+            outputs = model(images.cuda())
+            loss = criterion(outputs, labels.cuda())
             val_loss += loss.item()
-    
+
     val_loss /= len(val_loader)
-    print(f"Epoch {epoch+1}/{NUM_EPOCHS}, Val Loss: {val_loss:.4f}")
+    return val_loss
+
 
 def train_loop(
     train_loader: DataLoader,
@@ -71,21 +72,28 @@ def train_loop(
 ) -> None:
     with log_filepath.open("w") as f:
         for epoch in range(NUM_EPOCHS):
+            start = time.time()
             model.train()
             for images, labels in train_loader:
                 optimizer.zero_grad()
-                outputs = model(images)
-                loss = criterion(outputs, labels)
+                outputs = model(images.cuda())
+                loss = criterion(outputs, labels.cuda())
                 f.write(f"{loss.item()}\n")
                 loss.backward()
                 optimizer.step()
 
-            validate(val_loader, model, criterion, epoch)
+            val_loss = validate(val_loader, model, criterion)
+            print(
+                f"Epoch {epoch + 1}/{NUM_EPOCHS}, "
+                f"Val Loss: {val_loss:.4f}, "
+                f"Duration: {time.time() - start:.2f}s"
+            )
 
 
 def main(data_dir: Path, log_file: Path) -> None:
     train_loader, val_loader = get_dataloaders(data_dir)
-    model = MLP(FEAT_DIM, NUM_LAYERS)
+    model = MLP(FEAT_DIM, NUM_LAYERS).cuda()
+    model = torch.compile(model)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
