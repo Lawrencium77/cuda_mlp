@@ -1,6 +1,6 @@
 # Cuda MLP
 
-This project trains an MLP on MNIST in pure CUDA/C++. It aims to be simple and quick.
+This project trains an MLP on MNIST in pure CUDA/C++. It aims to be simple whilst replicating the general structure of PyTorch-style ML frameworks.
 
 ## Accuracy
 
@@ -11,11 +11,13 @@ The following plot shows training loss for my implementation, and PyTorch. The p
 
 ## Speed
 
-A single epoch (including validation) takes ~750ms on an H100 for a model with 4 layers and a hidden dimension of 784. By comparison, PyTorch achieves ~3.6s per epoch (with `torch.compile` enabled and allowing for a warmup phase). **This custom implementation is >4x quicker**, presumably because it avoids any Python interpreter overhead.
+This project is not designed to be ultra-efficient. For example, its CUDA kernels are entirely unoptimised. That being said, it does implement a custom memory allocator since this is a key feature of popular deep learning frameworks.
+
+It's also much quicker than PyTorch for small models. A single epoch (including validation) takes ~750ms on an H100 for a model with 4 layers and a hidden dimension of 784. By comparison, PyTorch achieves ~3.6s per epoch (with `torch.compile` enabled and allowing for a warmup phase). **This custom implementation is >4x quicker**, presumably because it avoids any Python interpreter overhead.
 
 ### The Need for a Custom Memory Allocator
 
-Whenever launching a CUDA kernel, we must allocate GPU memory for the output tensor with a call to `cudaMalloc`. This forces a host-device synchronisation.
+When launching a CUDA kernel, we must allocate GPU memory for the output tensor with a call to `cudaMalloc`. This forces a host-device synchronisation.
 
 This is bad for GPU utilisation. As a workaround, popular deep learning frameworks manage their own "pool" of GPU memory, thus avoiding repeated calls to `cudaMalloc`/`cudaFree`. Examples include [PyTorch's CUDA Caching Allocator](https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html) and [Tensorflow's BFC Allocator](https://github.com/sourcecode369/tensorflow-1/blob/master/tensorflow/core/common_runtime/bfc_allocator.cc).
 
@@ -57,10 +59,6 @@ I've tried to keep the number of dependencies as small as possible. Currently, t
 
 ## TODO
 
-* Compare my throughput with PyTorch on various hardware.
-* Faster kernels, (tiled matmul, fused matmul-ReLU, etc.)
 * Support multiple dtypes (we currently only support FP32)
-* Add more detail to loss plot.
-* More thorough unit tests.
-* Linting
-* Build with CMake
+* Compare my throughput with PyTorch for various model sizes.
+* Add loss curves for various model sizes.
