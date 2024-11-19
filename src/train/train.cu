@@ -147,7 +147,7 @@ std::vector<std::vector<float>> train_loop(
         auto end_time = std::chrono::high_resolution_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         if (time_epoch) {
-            std::cout << "Epoch " << epoch << " took " << elapsed_time.count() << " ms" << std::endl;
+            std::cout << "Epoch " << epoch + 1 << " took " << elapsed_time.count() << " ms" << std::endl;
         }
 
         std::cout << "Validation Loss after epoch " << epoch + 1 << ": " << val_loss_and_acc.first << std::endl;
