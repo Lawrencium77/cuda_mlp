@@ -6,7 +6,6 @@
 __global__ void matrix_const_add(const float *a, const float value, float *output, const int rows, const int cols);
 __global__ void matrix_const_mul(const float *a, const float value, float *output, const int rows, const int cols);
 __global__ void matrix_sum(const float* data, float* sum, const int rows, const int cols);
-__global__ void matrix_max_abs(const float* data, float* sum, const int rows, const int cols);
 __global__ void matrix_add(const float *a, const float *b, float *c, const int rows, const int cols);
 __global__ void matrix_hadamard(const float *a, const float *b, float *c, const int rows, const int cols);
 __global__ void matrix_transpose(const float *a, float *b, const int rows, const int cols);

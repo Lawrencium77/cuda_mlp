@@ -32,17 +32,6 @@ __global__ void matrix_sum(const float* data, float* sum, const int rows, const 
     }
 }
 
-__global__ void matrix_max_abs(const float* data, float* max_abs, const int rows, const int cols) {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (row < rows && col < cols) {
-        int index = row * cols + col;
-        float value = fabsf(data[index]);
-        atomicMax(reinterpret_cast<int*>(max_abs), __float_as_int(value));
-    }
-}
-
 __global__ void matrix_add(const float *a, const float *b, float *c, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
