@@ -105,7 +105,7 @@ float matsum(const Matrix& mat){
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sum<<<gridSize, blockSize>>>(mat.device_data, d_sum, mat.rows, mat.cols);
+    matrix_sum<float><<<gridSize, blockSize>>>(mat.device_data, d_sum, mat.rows, mat.cols);
     cudaDeviceSynchronize();
     CHECK_CUDA_STATE();
 
@@ -127,7 +127,7 @@ Matrix transpose(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_transpose<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    matrix_transpose<float><<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -138,7 +138,7 @@ Matrix softmax(const Matrix& mat) {
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, (mat.rows + 1024 - 1) / 1024);
 
-    matrix_softmax_over_rows<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    matrix_softmax_over_rows<float><<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 };
@@ -152,7 +152,7 @@ Matrix sigmoid(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_sigmoid<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    matrix_sigmoid<float><<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 };
@@ -166,7 +166,7 @@ Matrix relu(const Matrix& mat) {
         (mat.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_relu<<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
+    matrix_relu<float><<<gridSize, blockSize>>>(mat.device_data, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -180,7 +180,7 @@ Matrix operator+(const Matrix& mat, const float value) {
         (mat.rows - 1) / blockSize.y + 1
     );
 
-    matrix_const_add<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
+    matrix_const_add<float><<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -194,7 +194,7 @@ Matrix operator*(const Matrix& mat, const float value) {
         (mat.rows - 1) / blockSize.y + 1
     );
 
-    matrix_const_mul<<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
+    matrix_const_mul<float><<<gridSize, blockSize>>>(mat.device_data, value, result.device_data, mat.rows, mat.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -221,7 +221,7 @@ Matrix operator+(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_add<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
+    matrix_add<float><<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -238,7 +238,7 @@ Matrix operator*(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_hadamard<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
+    matrix_hadamard<float><<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols);
     CHECK_CUDA_STATE();
     return result;
 }
@@ -256,7 +256,7 @@ Matrix matmul(const Matrix& mat1, const Matrix& mat2) {
         (mat1.rows - 1) / blockSize.y + 1
     );
 
-    matrix_multiply<<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols, mat2.cols);
+    matrix_multiply<float><<<gridSize, blockSize>>>(mat1.device_data, mat2.device_data, result.device_data, mat1.rows, mat1.cols, mat2.cols);
     CHECK_CUDA_STATE();
     return result;
 };
@@ -270,7 +270,7 @@ Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output) {
         (mat1.rows + blockSize.y - 1) / blockSize.y
     );
 
-    matrix_relu_backward<<<gridSize, blockSize>>>(mat1.device_data, grad_output.device_data, grad_input.device_data, mat1.rows, mat1.cols);
+    matrix_relu_backward<float><<<gridSize, blockSize>>>(mat1.device_data, grad_output.device_data, grad_input.device_data, mat1.rows, mat1.cols);
     CHECK_CUDA_STATE();
     return grad_input;
 }
@@ -282,7 +282,7 @@ void Matrix::random(const unsigned long seed, const float min, const float max) 
         (rows + blockSize.y - 1) / blockSize.y
     );
 
-    fill_with_random<<<gridSize, blockSize>>>(device_data, seed, rows, cols, min, max);
+    fill_with_random<float><<<gridSize, blockSize>>>(device_data, seed, rows, cols, min, max);
     CHECK_CUDA_STATE();
 };
 
@@ -296,7 +296,7 @@ Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels) {
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, 1);
 
-    ce_loss<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, mat1.rows, mat1.cols);
+    ce_loss<float><<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, mat1.rows, mat1.cols);
     CHECK_CUDA_STATE();
     return losses;
 };
@@ -319,7 +319,7 @@ Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output) {
         (bsz + blockSize.y - 1) / blockSize.y
     );
 
-    softmax_bwd<<<gridSize, blockSize>>>(labels.device_data, softmax_output.device_data, softmax_grads.device_data, bsz, num_classes);
+    softmax_bwd<float><<<gridSize, blockSize>>>(labels.device_data, softmax_output.device_data, softmax_grads.device_data, bsz, num_classes);
     CHECK_CUDA_STATE();
     return softmax_grads;
 }
@@ -335,7 +335,7 @@ std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Mat
     dim3 blockSize(1, 1024);
     dim3 gridSize(1, 1);
 
-    ce_loss_and_predictions<<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, predictions.device_data, mat1.rows, mat1.cols);
+    ce_loss_and_predictions<float><<<gridSize, blockSize>>>(mat1.device_data, labels.device_data, losses.device_data, predictions.device_data, mat1.rows, mat1.cols);
     CHECK_CUDA_STATE();
     return std::make_pair(std::move(losses), std::move(predictions));
 };
