@@ -40,6 +40,7 @@ __global__ void matrix_relu_backward(const float* a, const float* grad_output, f
 template <typename T>
 __global__ void fill_with_random(T* a, const unsigned long seed, const int rows, const int cols, const T min, const T max);
 
+// TODO: Sort out labels dtype so it's always int
 template <typename T>
 __global__ void ce_loss(const T* preds, const T* labels, T* losses, const int rows, const int cols, const float epsilon = 1e-7);
 
