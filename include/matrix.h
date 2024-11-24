@@ -13,17 +13,17 @@ struct Matrix {
   int cols;
   int numel;
 
-  Matrix(); 
+  Matrix();
   Matrix(int rows, int cols);
   ~Matrix();
-  
+
   // Use move constructor instead of copy constructor
   // Shouldn't matter too much since the compiler should use RVO
-  Matrix(Matrix&& other);
-  Matrix(const Matrix& other) = delete;
+  Matrix(Matrix &&other);
+  Matrix(const Matrix &other) = delete;
 
-  Matrix& operator=(Matrix&& other);
-  Matrix& operator=(const Matrix& other);
+  Matrix &operator=(Matrix &&other);
+  Matrix &operator=(const Matrix &other);
 
   void toDevice();
   void toHost();
@@ -36,26 +36,27 @@ struct Matrix {
 };
 
 // Matrix-only ops
-float matabsmax(const Matrix& mat);
-float matsum(const Matrix& mat);
-Matrix transpose(const Matrix& mat);
-Matrix softmax(const Matrix& mat);
-Matrix sigmoid(const Matrix& mat);
-Matrix relu(const Matrix& mat);
+float matabsmax(const Matrix &mat);
+float matsum(const Matrix &mat);
+Matrix transpose(const Matrix &mat);
+Matrix softmax(const Matrix &mat);
+Matrix sigmoid(const Matrix &mat);
+Matrix relu(const Matrix &mat);
 
 // Matrix-Scalar ops
-Matrix operator+(const Matrix& mat, const float value);
-Matrix operator-(const Matrix& mat, const float value);
-Matrix operator*(const Matrix& mat, const float value);
-Matrix operator/(const Matrix& mat, const float value);
+Matrix operator+(const Matrix &mat, const float value);
+Matrix operator-(const Matrix &mat, const float value);
+Matrix operator*(const Matrix &mat, const float value);
+Matrix operator/(const Matrix &mat, const float value);
 
 // Matrix-Matrix ops
-Matrix operator+(const Matrix& mat1, const Matrix& mat2);
-Matrix operator*(const Matrix& mat1, const Matrix& mat2);
-Matrix matmul(const Matrix& mat1, const Matrix& mat2);
-Matrix relu_backward(const Matrix& mat1, const Matrix& grad_output);
-Matrix get_ce_loss(const Matrix& mat1, const Matrix& labels);
-Matrix ce_softmax_bwd(const Matrix& labels, const Matrix& softmax_output);
-std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix& mat1, const Matrix& labels);
+Matrix operator+(const Matrix &mat1, const Matrix &mat2);
+Matrix operator*(const Matrix &mat1, const Matrix &mat2);
+Matrix matmul(const Matrix &mat1, const Matrix &mat2);
+Matrix relu_backward(const Matrix &mat1, const Matrix &grad_output);
+Matrix get_ce_loss(const Matrix &mat1, const Matrix &labels);
+Matrix ce_softmax_bwd(const Matrix &labels, const Matrix &softmax_output);
+std::pair<Matrix, Matrix> get_ce_loss_and_accuracy(const Matrix &mat1,
+                                                   const Matrix &labels);
 
 #endif

@@ -1,25 +1,25 @@
 #include "model.h"
 #include <iostream>
 
-void testSingleLayerForward(Matrix& input, int bsz, int feat_dim) {
+void testSingleLayerForward(Matrix &input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
-  Matrix& output = slp.forward(input);
+  Matrix &output = slp.forward(input);
   output.printData("SLP Output");
 }
 
-void testSingleLayerBackward(Matrix& input, int bsz, int feat_dim) {
+void testSingleLayerBackward(Matrix &input, int bsz, int feat_dim) {
   SingleLayerPerceptron slp(feat_dim, feat_dim);
   slp.randomise(0);
-  Matrix& output = slp.forward(input);
+  Matrix &output = slp.forward(input);
   Matrix grad = slp.backward(output);
   grad.printData("SLP Gradient");
 }
 
 Matrix getLabels(int bsz) {
-  float* labels_data = new float[bsz];
-  for (int i = 0; i < bsz; i++){
-      labels_data[i] = 0;
+  float *labels_data = new float[bsz];
+  for (int i = 0; i < bsz; i++) {
+    labels_data[i] = 0;
   }
   Matrix labels(bsz, 1);
   labels.setHostData(labels_data);
@@ -27,7 +27,8 @@ Matrix getLabels(int bsz) {
   return labels;
 }
 
-void testMLPForward(Matrix& input, int bsz, int feat_dim, int num_layers, int num_classes) {
+void testMLPForward(Matrix &input, int bsz, int feat_dim, int num_layers,
+                    int num_classes) {
   MLP mlp(feat_dim, num_layers);
   mlp.randomise(0);
   Matrix output = mlp.forward(input);
@@ -39,7 +40,8 @@ void testMLPForward(Matrix& input, int bsz, int feat_dim, int num_layers, int nu
   losses.printData("MLP Losses");
 }
 
-void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classes, int bsz) {
+void testMLPBackward(Matrix &input, int feat_dim, int num_layers,
+                     int num_classes, int bsz) {
   MLP mlp(feat_dim, num_layers);
   mlp.randomise(0);
   Matrix output = mlp.forward(input);
@@ -48,8 +50,8 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
 
   mlp.backward(labels, output);
 
-  float* data = new float[feat_dim * feat_dim];
-  Matrix& grads = mlp.layers[0].grads;
+  float *data = new float[feat_dim * feat_dim];
+  Matrix &grads = mlp.layers[0].grads;
   grads.printData("First layer gradients");
 
   float lr = 1.0;
@@ -58,9 +60,9 @@ void testMLPBackward(Matrix& input, int feat_dim, int num_layers, int num_classe
   mlp.layers[0].weights.printData("After weight update");
 }
 
-void setHostDataToConst(float* data, int numel, float value) {
-  for (int i = 0; i < numel; i++){
-      data[i] = value;
+void setHostDataToConst(float *data, int numel, float value) {
+  for (int i = 0; i < numel; i++) {
+    data[i] = value;
   }
 }
 
@@ -71,8 +73,8 @@ void runTests() {
   int num_classes = 10;
   int input_numel = feat_dim * bsz;
   int output_numel = num_classes * bsz;
-  
-  float* input_data = new float[input_numel];
+
+  float *input_data = new float[input_numel];
   setHostDataToConst(input_data, input_numel, 1.0f);
   Matrix input = Matrix(bsz, feat_dim);
   input.setHostData(input_data);
@@ -89,7 +91,7 @@ void runTests() {
 }
 
 int main() {
-    runTests();
-    Matrix::allocator.cleanup();
-    return 0;
+  runTests();
+  Matrix::allocator.cleanup();
+  return 0;
 }

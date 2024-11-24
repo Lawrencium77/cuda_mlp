@@ -59,6 +59,5 @@ I've tried to keep the number of dependencies as small as possible. Currently, t
 
 ## TODO
 
-* Support multiple dtypes (we currently only support FP32)
 * Compare my throughput with PyTorch for various model sizes.
 * Add loss curves for various model sizes.
