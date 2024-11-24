@@ -136,7 +136,7 @@ train_loop(MLP &mlp, std::vector<std::vector<unsigned char>> &train_images,
     auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
         end_time - start_time);
     if (time_epoch) {
-      std::cout << "Epoch " << epoch << " took " << elapsed_time.count()
+      std::cout << "Epoch " << epoch + 1 << " took " << elapsed_time.count()
                 << " ms" << std::endl;
     }
 
