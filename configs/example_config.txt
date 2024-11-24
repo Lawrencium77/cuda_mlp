@@ -7,3 +7,4 @@ bsz=64
 learning_rate=0.1
 verbose=0
 time_epoch=0
+precision=full

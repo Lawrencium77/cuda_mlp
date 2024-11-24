@@ -6,6 +6,7 @@
 #include <chrono>
 #include <filesystem>
 #include <random>
+#include <stdexcept>
 
 void shuffle_dataset(
     std::vector<std::vector<unsigned char>>& images,
@@ -30,7 +31,8 @@ void shuffle_dataset(
     labels = std::move(labels_shuffled);
 }
 
-std::pair<Matrix, Matrix> prepare_batch(
+template <typename T>
+std::pair<Matrix<T>, Matrix<T>> prepare_batch(
   const std::vector<std::vector<unsigned char> >& images,
   const std::vector<unsigned char>& labels,
   const int current_bsz,
@@ -39,7 +41,7 @@ std::pair<Matrix, Matrix> prepare_batch(
 ) {
     const int offset = batch_idx * current_bsz;
 
-    Matrix image_batch(current_bsz, feat_dim);
+    Matrix<T> image_batch(current_bsz, feat_dim);
     float* image_data = new float[current_bsz * feat_dim];
     for (int i = 0; i < current_bsz; ++i) {
         int idx = offset + i;
@@ -50,7 +52,7 @@ std::pair<Matrix, Matrix> prepare_batch(
     image_batch.setHostData(image_data);
     image_batch.toDevice();
 
-    Matrix labels_batch(current_bsz, 1);
+    Matrix<T> labels_batch(current_bsz, 1);
     float* labels_data = new float[current_bsz];
     for (int i = 0; i < current_bsz; ++i) {
         int idx = offset + i;
@@ -62,8 +64,9 @@ std::pair<Matrix, Matrix> prepare_batch(
     return std::make_pair(std::move(image_batch), std::move(labels_batch));
 }
 
+template <typename T>
 std::pair<float, float> get_val_stats(
-  MLP& mlp,
+  MLP<T>& mlp,
   const std::vector<std::vector<unsigned char>>& val_images,
   const std::vector<unsigned char>& val_labels,
   const int bsz,
@@ -76,17 +79,18 @@ std::pair<float, float> get_val_stats(
 
   for (int i = 0; i < num_batches; ++i) {
     const int current_bsz = std::min(bsz, num_samples - i * bsz);
-    std::pair<Matrix, Matrix> data_and_labels = prepare_batch(val_images, val_labels, current_bsz, feat_dim, i);
-    Matrix output = mlp.forward(data_and_labels.first);
-    std::pair<Matrix, Matrix> loss_and_preds = get_ce_loss_and_accuracy(output, data_and_labels.second);
+    std::pair<Matrix<T>, Matrix<T>> data_and_labels = prepare_batch<T>(val_images, val_labels, current_bsz, feat_dim, i);
+    Matrix<T> output = mlp.forward(data_and_labels.first);
+    std::pair<Matrix<T>, Matrix<T>> loss_and_preds = get_ce_loss_and_accuracy(output, data_and_labels.second);
     total_loss += matsum(loss_and_preds.first);
     total_correct += matsum(loss_and_preds.second);
   }
   return std::make_pair(total_loss / num_samples, 100 * total_correct / num_samples);
 }
 
+template <typename T>
 std::vector<std::vector<float>> train_loop(
-  MLP& mlp,
+  MLP<T>& mlp,
   std::vector<std::vector<unsigned char>>& train_images,
   std::vector<unsigned char>& train_labels,
   const std::vector<std::vector<unsigned char>>& val_images,
@@ -113,7 +117,7 @@ std::vector<std::vector<float>> train_loop(
         auto start_time = std::chrono::high_resolution_clock::now();
         for (int batch_idx = 0; batch_idx < num_batches_per_epoch; ++batch_idx) {
             const int current_bsz = std::min(bsz, num_samples - batch_idx * bsz);
-            std::pair<Matrix, Matrix> data_and_labels = prepare_batch(
+            std::pair<Matrix<T>, Matrix<T>> data_and_labels = prepare_batch<T>(
                 train_images,
                 train_labels,
                 current_bsz,
@@ -121,7 +125,7 @@ std::vector<std::vector<float>> train_loop(
                 batch_idx
             );
 
-            Matrix output = mlp.forward(data_and_labels.first);
+            Matrix<T> output = mlp.forward(data_and_labels.first);
             mlp.backward(data_and_labels.second, output);
             mlp.update_weights(lr);
 
@@ -140,7 +144,7 @@ std::vector<std::vector<float>> train_loop(
         }
 
         // Validate at end of each epoch
-        std::pair<float, float> val_loss_and_acc = get_val_stats(mlp, val_images, val_labels, bsz, feat_dim);
+        std::pair<float, float> val_loss_and_acc = get_val_stats<T>(mlp, val_images, val_labels, bsz, feat_dim);
         val_losses.push_back(val_loss_and_acc.first);
         val_accs.push_back(val_loss_and_acc.second);
 
@@ -166,6 +170,38 @@ void save_metric(const std::vector<float>& losses, const std::string filename) {
     loss_file.close();
 }
 
+template <typename T>
+void train_with_type(
+    std::vector<std::vector<unsigned char> >& train_images,
+    std::vector<std::vector<unsigned char> >& val_images,
+    std::vector<unsigned char>& train_labels,
+    std::vector<unsigned char>& val_labels,
+    std::map<std::string, std::string>& config,
+    const std::string log_dir
+) {
+    MLP<T> mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
+    mlp.randomise(0);
+    cudaDeviceSynchronize();
+
+    std::vector<std::vector<float>> metrics = train_loop<T>(
+        mlp,
+        train_images,
+        train_labels,
+        val_images,
+        val_labels,
+        std::stoi(config["num_epochs"]),
+        std::stoi(config["bsz"]),
+        std::stoi(config["feat_dim"]),
+        std::stof(config["learning_rate"]),
+        std::stoi(config["verbose"]),
+        std::stoi(config["time_epoch"])
+    );
+
+    save_metric(metrics[0], log_dir + "/train_losses.txt");
+    save_metric(metrics[1], log_dir + "/val_losses.txt");
+    save_metric(metrics[2], log_dir + "/val_accs.txt");
+}
+
 void train(const std::string config_file) {
     std::map<std::string, std::string> config = read_config(config_file);
 
@@ -183,27 +219,14 @@ void train(const std::string config_file) {
     const std::string log_dir = config["log_dir"];
     std::filesystem::create_directory(log_dir);
 
-    MLP mlp(std::stoi(config["feat_dim"]), std::stoi(config["num_layers"]));
-    mlp.randomise(0);
-    cudaDeviceSynchronize();
-
-    std::vector<std::vector<float>> metrics = train_loop(
-      mlp,
-      train_images,
-      train_labels,
-      val_images,
-      val_labels,
-      std::stoi(config["num_epochs"]),
-      std::stoi(config["bsz"]),
-      std::stoi(config["feat_dim"]),
-      std::stof(config["learning_rate"]),
-      std::stoi(config["verbose"]),
-      std::stoi(config["time_epoch"])
-    );
-
-    save_metric(metrics[0], log_dir + "/train_losses.txt");
-    save_metric(metrics[1], log_dir + "/val_losses.txt");
-    save_metric(metrics[2], log_dir + "/val_accs.txt");
+    const std::string precision = config["precision"];
+    if (precision == "full") {
+        train_with_type<float>(train_images, val_images, train_labels, val_labels, config, log_dir);
+    } else if (precision == "half") {
+        train_with_type<__half>(train_images, val_images, train_labels, val_labels, config, log_dir);
+    } else {
+        throw std::invalid_argument("Training precision must be either 'full' or 'half'");
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -212,6 +235,6 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     train(argv[1]);
-    Matrix::allocator.cleanup();
+    baseMatrix::allocator.cleanup();
     return 0;
 }
