@@ -40,7 +40,7 @@ template <typename T> struct Matrix : public baseMatrix {
 
   void setHostData(float *data);
 
-  void random(const unsigned long seed, const float min, const float max);
+  void random(const unsigned long seed, const T min, const T max);
 
   void printData(std::string message = "");
 };

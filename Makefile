@@ -1,6 +1,7 @@
 NVCC = nvcc
 
 CFLAGS = -I./include -I./src -I./src/matrix -std=c++20
+NVCC_FLAGS = -arch=sm_90 -gencode=arch=compute_90,code=sm_90
 ifeq ($(DEBUG), 1)
     CFLAGS += -g
     NVCC_FLAGS += -G

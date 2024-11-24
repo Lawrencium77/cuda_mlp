@@ -72,10 +72,17 @@ __global__ void matrix_multiply(const T* a, const T* b, T* c, const int rows_a, 
 
     if (row < rows_a && col < cols_b) {
         float sum = 0.0f;
-        for (int k = 0; k < cols_a; k++) {
-            sum += a[row * cols_a + k] * b[k * cols_b + col];
+        if constexpr (std::is_same_v<T, __half>) {
+            for (int k = 0; k < cols_a; k++) {
+                sum += __half2float(a[row * cols_a + k]) * __half2float(b[k * cols_b + col]);
+            }
+            c[row * cols_b + col] = __float2half(sum);
+        } else {
+            for (int k = 0; k < cols_a; k++) {
+                sum += a[row * cols_a + k] * b[k * cols_b + col];
+            }
+            c[row * cols_b + col] = sum;
         }
-        c[row * cols_b + col] = sum;
     }
 }
 
@@ -127,7 +134,11 @@ __global__ void matrix_relu(const T *a, T* b, const int rows, const int cols) {
 
     if (row < rows && col < cols) {
         int index = row * cols + col;
-        b[index] = max(T(0), a[index]);
+        if constexpr (std::is_same_v<T, __half>) {
+            b[index] = __hmax(a[index], __half(0));
+        } else {
+            b[index] = max(T(0), a[index]);
+        }
     }
 }
 

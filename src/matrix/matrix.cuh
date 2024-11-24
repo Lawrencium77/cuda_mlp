@@ -289,8 +289,7 @@ Matrix<T> relu_backward(const Matrix<T> &mat1, const Matrix<T> &grad_output) {
 }
 
 template <typename T>
-void Matrix<T>::random(const unsigned long seed, const float min,
-                       const float max) {
+void Matrix<T>::random(const unsigned long seed, const T min, const T max) {
   dim3 blockSize(16, 16);
   dim3 gridSize((cols + blockSize.x - 1) / blockSize.x,
                 (rows + blockSize.y - 1) / blockSize.y);

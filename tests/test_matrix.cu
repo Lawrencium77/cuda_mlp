@@ -1,8 +1,9 @@
+#include <cuda_fp16.h>
 #include "matrix.h"
 #include <iostream>
 
 template <typename T>
-void testPrintOp(Matrix<T>& input1, Matrix<T>& input2, float* data, int bsz, int feats) {
+void testPrintOp(Matrix<T>& input1, Matrix<T>& input2) {
     input1.printData("Input 1");
     input2.printData("Input 2");
 }
@@ -122,13 +123,13 @@ void runTests() {
 
     Matrix<T> input1 = Matrix<T>(bsz, feats);
     Matrix<T> input2 = Matrix<T>(bsz, feats);
-    input1.random(0, -1.0f, 1.0f);
-    input2.random(1, -1.0f, 1.0f);
-    
+    input1.random(0, T(-1), T(1));
+    input2.random(1, T(-1), T(1));
+
     int largest_dim = bsz > feats ? bsz : feats;
     float* data = new float[largest_dim * largest_dim];
 
-    testPrintOp(input1, input2, data, bsz, feats);
+    testPrintOp(input1, input2);
     testSum(input1, data, bsz, feats);
     testTranspose(input1, data, bsz, feats);
     testAddConst(input1, data, value, bsz, feats);
@@ -138,7 +139,7 @@ void runTests() {
     testMul(input1, input2, data, bsz);
     testSigmoid(input1, data, bsz, feats);
     testRelu(input1, data, bsz, feats);
-    
+
     Matrix<T> normalised_values = testSoftmax(input1, data, bsz, feats);
     testCrossEntropy(normalised_values, feats, bsz);
     testCESoftmaxBwd(normalised_values, bsz, feats);
@@ -148,7 +149,7 @@ void runTests() {
 }
 
 int main() {
-    runTests<float>();
+    runTests<__half>();
     baseMatrix::allocator.cleanup();
     return 0;
 }
