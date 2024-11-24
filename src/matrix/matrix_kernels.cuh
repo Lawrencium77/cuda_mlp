@@ -224,3 +224,17 @@ __global__ void softmax_bwd(const T* labels, const T* softmax_outputs, T* softma
         }
     }
 }
+
+__global__ void convertFP32ToFP16(half* out, float* in, int numel) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < numel) {
+        out[idx] = __float2half(in[idx]);
+    }
+}
+
+__global__ void convertFP16ToFP32(float* out, half* in, int numel) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < numel) {
+        out[idx] = __half2float(in[idx]);
+    }
+}

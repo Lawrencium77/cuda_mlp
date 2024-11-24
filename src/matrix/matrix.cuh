@@ -16,15 +16,43 @@ template <typename T> Matrix<T>::~Matrix() {
   allocator.free(device_data);
 }
 
-// TODO: Casting during H<->D transfers.
-template <typename T> void Matrix<T>::toDevice() {
-  cudaMemcpy(device_data, host_data, numel * sizeof(float),
-             cudaMemcpyHostToDevice);
+template <typename T>
+void Matrix<T>::toDevice() {
+    if constexpr (std::is_same_v<T, half>) {
+        // FP32 -> FP16 conversion
+        float* temp_device_data;
+        temp_device_data = static_cast<float *>(allocator.allocate(numel * sizeof(float)));
+        cudaMemcpy(temp_device_data, host_data, numel * sizeof(float), cudaMemcpyHostToDevice);
+
+        int blockSize = 256;
+        int numBlocks = (numel + blockSize - 1) / blockSize;
+        convertFP32ToFP16<<<numBlocks, blockSize>>>(device_data, temp_device_data, numel);
+
+        allocator.free(temp_device_data);
+    } else {
+        cudaMemcpy(device_data, host_data, numel * sizeof(float),
+                   cudaMemcpyHostToDevice);
+    }
+    CHECK_CUDA_STATE();
 }
 
 template <typename T> void Matrix<T>::toHost() {
-  cudaMemcpy(host_data, device_data, numel * sizeof(float),
-             cudaMemcpyDeviceToHost);
+  if constexpr (std::is_same_v<T, half>) {
+        // FP16 -> FP32 conversion
+        float* temp_device_data;
+        temp_device_data = static_cast<float *>(allocator.allocate(numel * sizeof(float)));
+
+        int blockSize = 256;
+        int numBlocks = (numel + blockSize - 1) / blockSize;
+        convertFP16ToFP32<<<numBlocks, blockSize>>>(temp_device_data, device_data, numel);
+
+        cudaMemcpy(host_data, temp_device_data, numel * sizeof(float), cudaMemcpyDeviceToHost);
+
+        allocator.free(temp_device_data);
+    } else {
+        cudaMemcpy(host_data, device_data, numel * sizeof(float), cudaMemcpyDeviceToHost);
+    }
+    CHECK_CUDA_STATE();
 }
 
 template <typename T> void Matrix<T>::setHostData(float *data) {

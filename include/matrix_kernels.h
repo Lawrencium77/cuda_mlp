@@ -50,6 +50,9 @@ __global__ void ce_loss_and_predictions(const T* preds, const T* labels, T* loss
 template <typename T>
 __global__ void softmax_bwd(const T* labels, const T* softmax_outputs, T* softmax_grads, const int rows, const int cols);
 
+__global__ void convertFP32ToFP16(half* out, float* in, int numel);
+__global__ void convertFP16ToFP32(float* out, half* in, int numel);
+
 #include "matrix_kernels.cuh"
 
 #endif
