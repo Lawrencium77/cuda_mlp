@@ -36,7 +36,7 @@ template <typename T>
 __global__ void matrix_relu(const T* a, T* b, const int rows, const int cols);
 
 template <typename T>
-__global__ void matrix_relu_backward(const float* a, const float* grad_output, float* grad_input, const int rows, const int cols);
+__global__ void matrix_relu_backward(const T* a, const T* grad_output, T* grad_input, const int rows, const int cols);
 
 template <typename T>
 __global__ void fill_with_random(T* a, const unsigned long seed, const int rows, const int cols, const T min, const T max);

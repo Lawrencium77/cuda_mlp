@@ -95,6 +95,7 @@ void runTests() {
 
 int main() {
     runTests<float>();
+    runTests<__half>();
     baseMatrix::allocator.cleanup();
     return 0;
 }

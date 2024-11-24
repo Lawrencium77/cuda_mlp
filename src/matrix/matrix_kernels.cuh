@@ -144,13 +144,13 @@ __global__ void matrix_relu(const T *a, T* b, const int rows, const int cols) {
 
 
 template <typename T>
-__global__ void matrix_relu_backward(const float* a, const float* grad_output, float* grad_input, const int rows, const int cols) {
+__global__ void matrix_relu_backward(const T* a, const T* grad_output, T* grad_input, const int rows, const int cols) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-
     if (row < rows && col < cols) {
         int index = row * cols + col;
-        grad_input[index] = a[index] > 0 ? grad_output[index] : 0.0f;
+        T zero = T(0);
+        grad_input[index] = a[index] > zero ? grad_output[index] : zero;
     }
 }
 
