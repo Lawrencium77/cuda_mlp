@@ -1,4 +1,3 @@
-#include <cuda_fp16.h>
 #include "matrix.h"
 #include <iostream>
 

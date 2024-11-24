@@ -3,6 +3,7 @@
 
 #ifdef __CUDACC__
 #include <algorithm>
+#include <cuda_fp16.h>
 #include <curand_kernel.h>
 template <typename T>
 __global__ void matrix_const_add(const T* a, const T value, T* output, const int rows, const int cols);
