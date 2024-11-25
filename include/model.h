@@ -1,6 +1,8 @@
 #include "matrix.h"
 #include <vector>
 
+constexpr int IMAGE_FEAT_DIM = 28 * 28;
+
 struct SingleLayerPerceptron {
   const int dim_out;
   const int dim_in;
@@ -19,6 +21,7 @@ struct SingleLayerPerceptron {
 };
 
 struct MLP {
+  const int input_dim;
   const int feat_dim;
   const int num_layers;
   const int output_classes = 10;

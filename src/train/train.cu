@@ -32,15 +32,15 @@ void shuffle_dataset(std::vector<std::vector<unsigned char>> &images,
 std::pair<Matrix, Matrix>
 prepare_batch(const std::vector<std::vector<unsigned char>> &images,
               const std::vector<unsigned char> &labels, const int current_bsz,
-              const int feat_dim, const int batch_idx) {
+              const int batch_idx) {
   const int offset = batch_idx * current_bsz;
 
-  Matrix image_batch(current_bsz, feat_dim);
-  float *image_data = new float[current_bsz * feat_dim];
+  Matrix image_batch(current_bsz, IMAGE_FEAT_DIM);
+  float *image_data = new float[current_bsz * IMAGE_FEAT_DIM];
   for (int i = 0; i < current_bsz; ++i) {
     int idx = offset + i;
-    for (int j = 0; j < feat_dim; ++j) {
-      image_data[i * feat_dim + j] =
+    for (int j = 0; j < IMAGE_FEAT_DIM; ++j) {
+      image_data[i * IMAGE_FEAT_DIM + j] =
           static_cast<float>(images[idx][j]) / 255.0f; // Normalize
     }
   }
@@ -72,7 +72,7 @@ get_val_stats(MLP &mlp,
   for (int i = 0; i < num_batches; ++i) {
     const int current_bsz = std::min(bsz, num_samples - i * bsz);
     std::pair<Matrix, Matrix> data_and_labels =
-        prepare_batch(val_images, val_labels, current_bsz, feat_dim, i);
+        prepare_batch(val_images, val_labels, current_bsz, i);
     Matrix output = mlp.forward(data_and_labels.first);
     std::pair<Matrix, Matrix> loss_and_preds =
         get_ce_loss_and_accuracy(output, data_and_labels.second);
@@ -106,7 +106,7 @@ train_loop(MLP &mlp, std::vector<std::vector<unsigned char>> &train_images,
     for (int batch_idx = 0; batch_idx < num_batches_per_epoch; ++batch_idx) {
       const int current_bsz = std::min(bsz, num_samples - batch_idx * bsz);
       std::pair<Matrix, Matrix> data_and_labels = prepare_batch(
-          train_images, train_labels, current_bsz, feat_dim, batch_idx);
+          train_images, train_labels, current_bsz, batch_idx);
 
       Matrix output = mlp.forward(data_and_labels.first);
       mlp.backward(data_and_labels.second, output);
@@ -136,7 +136,7 @@ train_loop(MLP &mlp, std::vector<std::vector<unsigned char>> &train_images,
     auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
         end_time - start_time);
     if (time_epoch) {
-      std::cout << "Epoch " << epoch << " took " << elapsed_time.count()
+      std::cout << "Epoch " << epoch + 1 << " took " << elapsed_time.count()
                 << " ms" << std::endl;
     }
 
