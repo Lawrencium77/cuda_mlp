@@ -59,8 +59,9 @@ void SingleLayerPerceptron::update_weights(const float lr) {
 }
 
 MLP::MLP(int feat_dim, int num_layers)
-    : feat_dim(feat_dim), num_layers(num_layers) {
-  for (int i = 0; i < num_layers; ++i) {
+    : input_dim(IMAGE_FEAT_DIM), feat_dim(feat_dim), num_layers(num_layers) {
+  layers.push_back(SingleLayerPerceptron(feat_dim, input_dim));
+  for (int i = 1; i < num_layers; ++i) {
     layers.push_back(SingleLayerPerceptron(feat_dim, feat_dim));
   }
   layers.push_back(SingleLayerPerceptron(output_classes, feat_dim, false));
