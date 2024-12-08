@@ -5,6 +5,18 @@
 #include "allocator.h"
 #include <iostream>
 
+void* CudaAsyncAllocator::allocate(size_t size) {
+    void* ptr = nullptr;
+    cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
+    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+    return ptr;
+}
+
+void CudaAsyncAllocator::free(void* ptr) {
+    cudaError_t free_err = cudaFreeAsync(ptr, 0);
+    CHECK_CUDA_STATE_WITH_ERR(free_err);
+}
+
 MemoryAllocator::Block::Block(void *p, size_t s)
     : ptr(p), size(s), free(true), next(nullptr), prev(nullptr) {}
 
