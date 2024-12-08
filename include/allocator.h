@@ -5,7 +5,26 @@
 #include <cuda_runtime.h>
 #endif
 
-class MemoryAllocator {
+class AllocatorBase {
+public:
+    virtual ~AllocatorBase() = default;
+    virtual void* allocate(size_t size) = 0;
+    virtual void free(void* ptr) = 0;
+    virtual void cleanup() {}
+
+protected:
+    AllocatorBase() = default;
+};
+
+
+class CudaAsyncAllocator : public AllocatorBase {
+public:
+    void* allocate(size_t size);
+    void free(void* ptr);
+};
+
+
+class MemoryAllocator : public AllocatorBase {
 private:
   struct Block {
     void *ptr;
