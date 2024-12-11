@@ -92,6 +92,6 @@ void runTests() {
 
 int main() {
   runTests();
-  Matrix::allocator.cleanup();
+  Matrix::allocator->cleanup();
   return 0;
 }

@@ -2,7 +2,23 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
-MemoryAllocator Matrix::allocator;
+std::unique_ptr<AllocatorBase> Matrix::allocator;
+
+static std::unique_ptr<AllocatorBase> createAllocator() {
+    const char* env = std::getenv("ALLOCATOR_TYPE");
+    if (env && std::string(env) == "cuda") {
+        std::cerr << "[INFO] Using CudaAsyncAllocator\n";
+        return std::make_unique<CudaAsyncAllocator>();
+    } else {
+        std::cerr << "[INFO] Using MemoryAllocator (default)\n";
+        return std::make_unique<MemoryAllocator>();
+    }
+}
+
+__attribute__((constructor))
+static void initAllocator() {
+    Matrix::allocator = createAllocator();
+}
 
 Matrix::Matrix()
     : rows(0), cols(0), numel(0), host_data(nullptr), device_data(nullptr) {}
@@ -10,12 +26,12 @@ Matrix::Matrix()
 Matrix::Matrix(int rows, int cols)
     : rows(rows), cols(cols), numel(rows * cols) {
   host_data = new float[numel];
-  device_data = static_cast<float *>(allocator.allocate(numel * sizeof(float)));
+  device_data = static_cast<float *>(allocator->allocate(numel * sizeof(float)));
 }
 
 Matrix::~Matrix() {
   delete[] host_data;
-  allocator.free(device_data);
+  allocator->free(device_data);
 }
 
 void Matrix::toDevice() {
@@ -46,7 +62,7 @@ Matrix::Matrix(Matrix &&other)
 Matrix &Matrix::operator=(Matrix &&other) {
   if (this != &other) {
     delete[] host_data;
-    allocator.free(device_data);
+    allocator->free(device_data);
 
     rows = other.rows;
     cols = other.cols;
@@ -68,7 +84,7 @@ Matrix &Matrix::operator=(const Matrix &other) {
     // Deallocate and reallocate resources since we can't assume numel ==
     // other.numel
     delete[] host_data;
-    allocator.free(device_data);
+    allocator->free(device_data);
 
     rows = other.rows;
     cols = other.cols;
@@ -78,7 +94,7 @@ Matrix &Matrix::operator=(const Matrix &other) {
     std::copy(other.host_data, other.host_data + numel, host_data);
 
     device_data =
-        static_cast<float *>(allocator.allocate(numel * sizeof(float)));
+        static_cast<float *>(allocator->allocate(numel * sizeof(float)));
     cudaMemcpy(device_data, other.device_data, numel * sizeof(float),
                cudaMemcpyDeviceToDevice);
   }

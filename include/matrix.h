@@ -3,10 +3,11 @@
 
 #include "allocator.h"
 #include "cuda_utils.h"
+#include <memory>
 #include <string>
 
 struct Matrix {
-  static MemoryAllocator allocator;
+  static std::unique_ptr<AllocatorBase> allocator;
   float *host_data;
   float *device_data;
   int rows;

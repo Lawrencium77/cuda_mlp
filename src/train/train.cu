@@ -199,6 +199,6 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
   train(argv[1]);
-  Matrix::allocator.cleanup();
+  Matrix::allocator->cleanup();
   return 0;
 }
