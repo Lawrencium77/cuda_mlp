@@ -2,6 +2,7 @@
 #include "matrix_kernels.h"
 #include <iostream>
 
+// Allocator Setup
 std::unique_ptr<AllocatorBase> Matrix::allocator;
 
 static std::unique_ptr<AllocatorBase> createAllocator() {
@@ -20,6 +21,7 @@ static void initAllocator() {
     Matrix::allocator = createAllocator();
 }
 
+// Rest of functionality
 Matrix::Matrix()
     : rows(0), cols(0), numel(0), host_data(nullptr), device_data(nullptr) {}
 
