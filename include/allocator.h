@@ -19,6 +19,7 @@ protected:
 
 class CudaAsyncAllocator : public AllocatorBase {
 public:
+    CudaAsyncAllocator();
     void* allocate(size_t size);
     void free(void* ptr);
 };

@@ -5,6 +5,14 @@
 #include "allocator.h"
 #include <iostream>
 
+CudaAsyncAllocator::CudaAsyncAllocator() {
+  // Maximal release threshold to prevent early cudaFrees
+  cudaMemPool_t mempool;
+  cudaDeviceGetDefaultMemPool(&mempool, 0);
+  uint64_t threshold = UINT64_MAX;
+  cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrReleaseThreshold, &threshold);
+}
+
 void* CudaAsyncAllocator::allocate(size_t size) {
     void* ptr = nullptr;
     cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
