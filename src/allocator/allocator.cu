@@ -1,7 +1,13 @@
-// Simple device memory allocator.
-// Uses a doubly-linked list, and first-fit strategy for finding free blocks.
-// Also implements free block coalescing.
-// Inspired by https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html
+// This file implements two kind of memory allocator:
+//    1. Stream-ordered allocator based on CudaMallocAsync/CudaFreeAsync.
+//        * Inspired by
+//        https://developer.nvidia.com/blog/using-cuda-stream-ordered-memory-allocator-part-1/
+//    2. Simple device memory allocator.
+//        * Uses a doubly-linked list, and first-fit strategy for finding free
+//        blocks.
+//        * Also implements free block coalescing.
+//        * Inspired by
+//        https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html
 #include "allocator.h"
 #include <iostream>
 
@@ -13,16 +19,16 @@ CudaAsyncAllocator::CudaAsyncAllocator() {
   cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrReleaseThreshold, &threshold);
 }
 
-void* CudaAsyncAllocator::allocate(size_t size) {
-    void* ptr = nullptr;
-    cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
-    CHECK_CUDA_STATE_WITH_ERR(malloc_err);
-    return ptr;
+void *CudaAsyncAllocator::allocate(size_t size) {
+  void *ptr = nullptr;
+  cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
+  CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+  return ptr;
 }
 
-void CudaAsyncAllocator::free(void* ptr) {
-    cudaError_t free_err = cudaFreeAsync(ptr, 0);
-    CHECK_CUDA_STATE_WITH_ERR(free_err);
+void CudaAsyncAllocator::free(void *ptr) {
+  cudaError_t free_err = cudaFreeAsync(ptr, 0);
+  CHECK_CUDA_STATE_WITH_ERR(free_err);
 }
 
 MemoryAllocator::Block::Block(void *p, size_t s)
