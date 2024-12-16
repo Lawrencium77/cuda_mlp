@@ -19,6 +19,16 @@ CudaAsyncAllocator::CudaAsyncAllocator() {
   cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrReleaseThreshold, &threshold);
 }
 
+CudaAsyncAllocator::~CudaAsyncAllocator() {
+  cudaMemPool_t mempool;
+  cudaDeviceGetDefaultMemPool(&mempool, 0);
+  int64_t max_size_bytes;
+  cudaMemPoolGetAttribute(mempool, cudaMemPoolAttrReservedMemHigh,
+                          &max_size_bytes);
+  std::cout << "\nMax pool size was " << (max_size_bytes / (1024 * 1024))
+            << " MiB" << std::endl;
+}
+
 void *CudaAsyncAllocator::allocate(size_t size) {
   void *ptr = nullptr;
   cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
