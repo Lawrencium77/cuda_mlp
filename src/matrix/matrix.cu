@@ -6,19 +6,18 @@
 std::unique_ptr<AllocatorBase> Matrix::allocator;
 
 static std::unique_ptr<AllocatorBase> createAllocator() {
-    const char* env = std::getenv("ALLOCATOR_TYPE");
-    if (env && std::string(env) == "cuda") {
-        std::cerr << "[INFO] Using CudaAsyncAllocator\n";
-        return std::make_unique<CudaAsyncAllocator>();
-    } else {
-        std::cerr << "[INFO] Using MemoryAllocator (default)\n";
-        return std::make_unique<MemoryAllocator>();
-    }
+  const char *env = std::getenv("ALLOCATOR_TYPE");
+  if (env && std::string(env) == "cuda") {
+    std::cerr << "[INFO] Using CudaAsyncAllocator\n";
+    return std::make_unique<CudaAsyncAllocator>();
+  } else {
+    std::cerr << "[INFO] Using MemoryAllocator (default)\n";
+    return std::make_unique<MemoryAllocator>();
+  }
 }
 
-__attribute__((constructor))
-static void initAllocator() {
-    Matrix::allocator = createAllocator();
+__attribute__((constructor)) static void initAllocator() {
+  Matrix::allocator = createAllocator();
 }
 
 // Rest of functionality
@@ -28,7 +27,8 @@ Matrix::Matrix()
 Matrix::Matrix(int rows, int cols)
     : rows(rows), cols(cols), numel(rows * cols) {
   host_data = new float[numel];
-  device_data = static_cast<float *>(allocator->allocate(numel * sizeof(float)));
+  device_data =
+      static_cast<float *>(allocator->allocate(numel * sizeof(float)));
 }
 
 Matrix::~Matrix() {
@@ -117,37 +117,10 @@ void Matrix::printData(std::string message) {
   std::cout << std::endl;
 }
 
-float matabsmax(const Matrix &mat) {
-  float *d_max;
-  cudaError_t malloc_err = cudaMalloc(&d_max, sizeof(float));
-  cudaError_t memset_err = cudaMemset(d_max, 0, sizeof(float));
-  CHECK_CUDA_STATE_WITH_ERR(malloc_err);
-  CHECK_CUDA_STATE_WITH_ERR(memset_err);
-
-  dim3 blockSize(16, 16);
-  dim3 gridSize((mat.cols + blockSize.x - 1) / blockSize.x,
-                (mat.rows + blockSize.y - 1) / blockSize.y);
-
-  matrix_max_abs<<<gridSize, blockSize>>>(mat.device_data, d_max, mat.rows,
-                                          mat.cols);
-  cudaDeviceSynchronize();
-  CHECK_CUDA_STATE();
-
-  float h_sum = 0.0f;
-  cudaError_t memcpy_err =
-      cudaMemcpy(&h_sum, d_max, sizeof(float), cudaMemcpyDeviceToHost);
-  CHECK_CUDA_STATE_WITH_ERR(memcpy_err);
-
-  cudaError_t free_err = cudaFree(d_max);
-  CHECK_CUDA_STATE_WITH_ERR(free_err);
-  return h_sum;
-}
-
 float matsum(const Matrix &mat) {
   float *d_sum;
-  cudaError_t malloc_err = cudaMalloc(&d_sum, sizeof(float));
-  cudaError_t memset_err = cudaMemset(d_sum, 0, sizeof(float));
-  CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+  d_sum = static_cast<float *>(Matrix::allocator->allocate(sizeof(float)));
+  cudaError_t memset_err = cudaMemsetAsync(d_sum, 0, sizeof(float));
   CHECK_CUDA_STATE_WITH_ERR(memset_err);
 
   dim3 blockSize(16, 16);
@@ -164,8 +137,8 @@ float matsum(const Matrix &mat) {
       cudaMemcpy(&h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
   CHECK_CUDA_STATE_WITH_ERR(memcpy_err);
 
-  cudaError_t free_err = cudaFree(d_sum);
-  CHECK_CUDA_STATE_WITH_ERR(free_err);
+  Matrix::allocator->free(d_sum);
+  cudaDeviceSynchronize();
   return h_sum;
 }
 
