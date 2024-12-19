@@ -10,6 +10,30 @@ I've tried to keep the number of dependencies small. Currently, this project req
 * [matplotlib](https://pypi.org/project/matplotlib/) and [seaborn](https://pypi.org/project/seaborn/) (for plotting loss curves).
 
 
+## Usage
+
+Build project with:
+
+```bash
+make clean && make all
+```
+
+Launch training run with:
+
+```bash
+build/train <path_to_config> # custom allocator
+ALLOCATOR_TYPE=cuda build/train <path_to_config> # CUDA Stream Ordered Allocator
+```
+
+For accurate timing information, I suggest doing:
+
+```bash
+tools/throughput_test_wrapper.sh build/train <path_to_config>
+```
+
+This fixes GPU clock speeds, ensuring more repeatable timing information.
+
+
 ## Accuracy
 
 The following plot shows training loss for my implementation, and PyTorch. The trajectories are almost identical.
