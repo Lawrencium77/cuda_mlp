@@ -3,10 +3,11 @@
 
 #include "allocator.h"
 #include "cuda_utils.h"
+#include <memory>
 #include <string>
 
 struct Matrix {
-  static MemoryAllocator allocator;
+  static std::unique_ptr<AllocatorBase> allocator;
   float *host_data;
   float *device_data;
   int rows;
@@ -36,7 +37,6 @@ struct Matrix {
 };
 
 // Matrix-only ops
-float matabsmax(const Matrix &mat);
 float matsum(const Matrix &mat);
 Matrix transpose(const Matrix &mat);
 Matrix softmax(const Matrix &mat);

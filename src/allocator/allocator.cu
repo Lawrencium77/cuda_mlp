@@ -1,9 +1,45 @@
-// Simple device memory allocator.
-// Uses a doubly-linked list, and first-fit strategy for finding free blocks.
-// Also implements free block coalescing.
-// Inspired by https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html
+// This file implements two kind of memory allocator:
+//    1. Stream-ordered allocator based on CudaMallocAsync/CudaFreeAsync.
+//        * Inspired by
+//        https://developer.nvidia.com/blog/using-cuda-stream-ordered-memory-allocator-part-1/
+//    2. Simple device memory allocator.
+//        * Uses a doubly-linked list, and first-fit strategy for finding free
+//        blocks.
+//        * Also implements free block coalescing.
+//        * Inspired by
+//        https://zdevito.github.io/2022/08/04/cuda-caching-allocator.html
 #include "allocator.h"
 #include <iostream>
+
+CudaAsyncAllocator::CudaAsyncAllocator() {
+  // Maximal release threshold to prevent early cudaFrees
+  cudaMemPool_t mempool;
+  cudaDeviceGetDefaultMemPool(&mempool, 0);
+  uint64_t threshold = UINT64_MAX;
+  cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrReleaseThreshold, &threshold);
+}
+
+CudaAsyncAllocator::~CudaAsyncAllocator() {
+  cudaMemPool_t mempool;
+  cudaDeviceGetDefaultMemPool(&mempool, 0);
+  int64_t max_size_bytes;
+  cudaMemPoolGetAttribute(mempool, cudaMemPoolAttrReservedMemHigh,
+                          &max_size_bytes);
+  std::cout << "\nMax pool size was " << (max_size_bytes / (1024 * 1024))
+            << " MiB" << std::endl;
+}
+
+void *CudaAsyncAllocator::allocate(size_t size) {
+  void *ptr = nullptr;
+  cudaError_t malloc_err = cudaMallocAsync(&ptr, size, 0);
+  CHECK_CUDA_STATE_WITH_ERR(malloc_err);
+  return ptr;
+}
+
+void CudaAsyncAllocator::free(void *ptr) {
+  cudaError_t free_err = cudaFreeAsync(ptr, 0);
+  CHECK_CUDA_STATE_WITH_ERR(free_err);
+}
 
 MemoryAllocator::Block::Block(void *p, size_t s)
     : ptr(p), size(s), free(true), next(nullptr), prev(nullptr) {}
