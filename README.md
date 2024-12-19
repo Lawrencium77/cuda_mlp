@@ -2,6 +2,30 @@
 
 This project trains an MLP on MNIST in pure CUDA/C++. It aims to be simple whilst replicating the general structure of PyTorch-style ML frameworks.
 
+## Usage
+
+Build project with:
+
+```bash
+make clean && make all
+```
+
+Launch training run with:
+
+```bash
+build/train <path_to_config> # custom allocator
+ALLOCATOR_TYPE=cuda build/train <path_to_config> # CUDA Stream Ordered Allocator
+```
+
+For accurate timing information, I suggest doing:
+
+```bash
+tools/throughput_test_wrapper.sh build/train <path_to_config>
+```
+
+This fixes GPU clock speeds, ensuring more repeatable timing information.
+
+
 ## Accuracy
 
 The following plot shows training loss for my implementation, and PyTorch. The performance is almost identical.
