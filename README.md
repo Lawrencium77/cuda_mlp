@@ -6,7 +6,6 @@ This project trains an MLP on MNIST in pure CUDA/C++. It aims to be simple whils
 
 The following plot shows training loss for my implementation, and PyTorch. The performance is almost identical.
 
-
 ![](assets/comparison.png)
 
 ## Speed
@@ -50,7 +49,7 @@ Epoch 3/10
 ...
 ```
 
-### Comparison to the Stream Ordered Memory Allocator
+## Comparison to the Stream Ordered Memory Allocator
 CUDA provides its own solution to synchronising `CudaMalloc`/`CudaFree` calls in the form of `CudaMallocAsync`/`cudaFreeAsync`. They call this the [Stream Ordered Memory Allocator](https://developer.nvidia.com/blog/using-cuda-stream-ordered-memory-allocator-part-1/). The idea is identical to any custom memory allocator. The memory pool is handled by the CUDA driver.
 
 This project supports `CudaMallocAsync`/`cudaFreeAsync` in addition to its custom memory allocator. There are two points of note regarding the implementation.
@@ -87,7 +86,19 @@ versus 521 μs for the CUDA allocator:
 
 This 21 μs discrepancy comes from a slightly longer idle time between consecutive kernels when using `cudaMallocAsync` compared to our custom allocator.
 
-Though the exact mechanism would require further investigation, the additional driver-level memory pool operations appear to impact kernel scheduling efficiency.  In contrast, our custom allocator operates at the application level, thus removing driver-managed pool operations from the critical path.
+Though the exact mechanism would require further investigation, the additional driver-level memory pool operations appear to impact kernel scheduling efficiency. In contrast, our custom allocator operates at the application level, thus removing driver-managed pool operations from the critical path. Of course, this performance difference becomes negligible with larger kernel sizes. Increasing `feat_dim` to `2048`, we see a ~30ms difference between allocator types - similar to above:
+
+```bash
+# Custom Allocator
+Epoch 1 took 2422 ms
+Epoch 2 took 2415 ms
+Epoch 3 took 2413 ms
+
+# CUDA Allocator
+Epoch 1 took 2449 ms
+Epoch 2 took 2442 ms
+Epoch 3 took 2440 ms
+```
 
 
 ## Dependencies
@@ -96,8 +107,3 @@ I've tried to keep the number of dependencies as small as possible. Currently, t
 
 * `wget` (to download MNIST).
 * [matplotlib](https://pypi.org/project/matplotlib/) and [seaborn](https://pypi.org/project/seaborn/) (for plotting loss curves).
-
-## TODO
-
-* Compare my throughput with PyTorch for various model sizes.
-* Add loss curves for various model sizes.
